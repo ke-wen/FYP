@@ -1,6 +1,6 @@
 from django.contrib import admin
 from import_export import resources
-from .models import Choice, Question, House
+from .models import Choice, Question, House, AverageHousePrice
 from import_export.admin import ImportExportModelAdmin
 
 
@@ -29,5 +29,16 @@ class HouseAdmin(ImportExportModelAdmin):
     list_filter = ('county', 'date_of_sale')
     search_fields = ('address', 'description_of_property')
 
+class AverageHousePriceResource(resources.ModelResource):
+    class Meta:
+        model = AverageHousePrice
+
+class AverageHousePriceAdmin(ImportExportModelAdmin):
+    resource_class = AverageHousePriceResource
+    list_display = ['month', 'dwelling_status', 'eircode', 'stamp_duty_event', 'type_of_buyer', 'unit', 'value']
+    list_filter = ['month', 'eircode', 'type_of_buyer']
+    search_fields = ['eircode', 'dwelling_status']
+    
 admin.site.register(House, HouseAdmin)
 admin.site.register(Question, QuestionAdmin)
+admin.site.register(AverageHousePrice, AverageHousePriceAdmin)

@@ -40,5 +40,17 @@ class House(models.Model):
 
     def __str__(self):
         return f"{self.address}, {self.county} {self.description_of_property}- Sold on {self.date_of_sale.strftime('%d/%m/%Y')} for €{self.price}"
+
+class AverageHousePrice(models.Model):
+    month = models.CharField(max_length=20)  
+    dwelling_status = models.CharField(max_length=100) 
+    eircode = models.CharField(max_length=20, blank=True, null=True) 
+    stamp_duty_event = models.CharField(max_length=100)  
+    type_of_buyer = models.CharField(max_length=100)  
+    unit = models.CharField(max_length=10, default='Euro')
+    value = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True) 
+
+    def __str__(self):
+        return f"{self.month} - {self.eircode} - {self.value}"
       
 
