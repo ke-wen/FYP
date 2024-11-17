@@ -42,15 +42,36 @@ class House(models.Model):
         return f"{self.address}, {self.county} {self.description_of_property}- Sold on {self.date_of_sale.strftime('%d/%m/%Y')} for €{self.price}"
 
 class AverageHousePrice(models.Model):
-    month = models.CharField(max_length=20)  
-    dwelling_status = models.CharField(max_length=100) 
-    eircode = models.CharField(max_length=20, blank=True, null=True) 
-    stamp_duty_event = models.CharField(max_length=100)  
-    type_of_buyer = models.CharField(max_length=100)  
-    unit = models.CharField(max_length=10, default='Euro')
-    value = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True) 
+    month = models.CharField(max_length=20, verbose_name='Month')
+    dwelling_status = models.CharField(max_length=100, verbose_name='Dwelling Status')
+    eircode = models.CharField(max_length=20, verbose_name='Eircode Output')
+    stamp_duty_event = models.CharField(max_length=100, verbose_name='Stamp Duty Event')
+    type_of_buyer = models.CharField(max_length=100, verbose_name='Type of Buyer')
+    unit = models.CharField(max_length=10, default='Euro', verbose_name='UNIT')
+    value = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name='VALUE')
 
     def __str__(self):
         return f"{self.month} - {self.eircode} - {self.value}"
       
 
+class HousesRent(models.Model):
+    title = models.CharField(max_length=255, verbose_name='Property Title')
+    price = models.CharField(max_length=50, verbose_name='Price')
+    daft_link = models.URLField(max_length=500, verbose_name='Daft.ie Link')
+    property_type = models.CharField(max_length=50, verbose_name='Property Type')
+    location = models.CharField(max_length=100, verbose_name='Location')
+    facilities = models.JSONField(blank=True, null=True, verbose_name='Facilities')  
+    bedrooms = models.PositiveIntegerField(verbose_name='Number of Bedrooms')
+    bathrooms = models.PositiveIntegerField(verbose_name='Number of Bathrooms')
+
+    def __str__(self):
+        return f"{self.title} - {self.location}"
+
+
+class AverageRent(models.Model):
+    eircode = models.CharField(max_length=20, verbose_name='Eircode')
+    month = models.CharField(max_length=20, verbose_name='Month')
+    average_rent = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Average Rent')
+
+    def __str__(self):
+        return f"{self.eircode} - {self.month} - €{self.average_rent}"

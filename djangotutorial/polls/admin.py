@@ -1,6 +1,6 @@
 from django.contrib import admin
 from import_export import resources
-from .models import Choice, Question, House, AverageHousePrice
+from .models import Choice, Question, House, AverageHousePrice, HousesRent ,AverageRent
 from import_export.admin import ImportExportModelAdmin
 
 
@@ -38,7 +38,27 @@ class AverageHousePriceAdmin(ImportExportModelAdmin):
     list_display = ['month', 'dwelling_status', 'eircode', 'stamp_duty_event', 'type_of_buyer', 'unit', 'value']
     list_filter = ['month', 'eircode', 'type_of_buyer']
     search_fields = ['eircode', 'dwelling_status']
-    
+
+class HousesRentResource(resources.ModelResource):
+    class Meta:
+        model = HousesRent
+
+class HousesRentAdmin(ImportExportModelAdmin):
+    resource_class = HousesRentResource
+    list_display = ['title', 'price', 'property_type', 'location', 'bedrooms', 'bathrooms']
+    list_filter = ['property_type', 'location', 'bedrooms']
+    search_fields = ['title', 'location', 'property_type']
+
+class AverageRentResource(resources.ModelResource):
+    class Meta:
+        model = AverageRent
+class AverageRentAdmin(ImportExportModelAdmin):
+    list_display = ['eircode', 'month', 'average_rent']
+    list_filter = ['eircode', 'month']
+    search_fields = ['eircode', 'month']
+
+admin.site.register(AverageRent, AverageRentAdmin)
+admin.site.register(HousesRent, HousesRentAdmin)    
 admin.site.register(House, HouseAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(AverageHousePrice, AverageHousePriceAdmin)
