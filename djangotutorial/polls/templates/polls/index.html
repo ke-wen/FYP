@@ -1,6 +1,7 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'polls/style.css' %}">
 <a href="{% url 'polls:list_houses' %}" class="btn btn-primary">View All Houses</a>
+<a href="{% url 'polls:show_data' %}" class="btn btn-secondary">View Dublin1 Data</a>
 {% if latest_question_list %}
     <ul>
     {% for question in latest_question_list %}

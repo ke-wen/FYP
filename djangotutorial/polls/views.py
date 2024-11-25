@@ -8,6 +8,7 @@ from django.http import Http404
 from .models import Choice, Question
 from django.utils import timezone
 from .models import House
+from .models import AverageRent, AverageHousePrice
 
 
 class IndexView(generic.ListView):
@@ -70,3 +71,20 @@ def results(request, question_id):
 def list_houses(request):
     houses = House.objects.all()  # get list of all house
     return render(request, 'polls/list_houses.html', {'houses': houses})
+
+
+def show_data(request):
+
+    average_rent_data = AverageRent.objects.filter(eircode='Dublin 1').first()
+    average_house_price_data = AverageHousePrice.objects.filter(eircode='D01: Dublin 1').first()
+
+    context = {
+        'average_rent_data': average_rent_data,
+        'average_house_price_data': average_house_price_data,
+    }
+    return render(request, 'polls/show_data.html', context)
+
+
+
+
+

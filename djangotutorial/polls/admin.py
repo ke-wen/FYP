@@ -45,7 +45,7 @@ class HousesRentResource(resources.ModelResource):
 
 class HousesRentAdmin(ImportExportModelAdmin):
     resource_class = HousesRentResource
-    list_display = ['title', 'price', 'property_type', 'location', 'bedrooms', 'bathrooms']
+    list_display = ['title', 'price', 'property_type', 'location', 'bedrooms', 'bathrooms','recorded_date']
     list_filter = ['property_type', 'location', 'bedrooms']
     search_fields = ['title', 'location', 'property_type']
 

@@ -1,0 +1,18 @@
+<h1>Data for Dublin1</h1>
+
+<h2>Average Rent</h2>
+{% if average_rent_data %}
+    <p>Month: {{ average_rent_data.month }}</p>
+    <p>Average Rent: €{{ average_rent_data.average_rent }}</p>
+{% else %}
+    <p>No average rent data available for Dublin1.</p>
+{% endif %}
+
+<h2>Average House Price</h2>
+{% if average_house_price_data %}
+    <p>Month: {{ average_house_price_data.month }}</p>
+    <p>Average House Price: €{{ average_house_price_data.value }}</p>
+{% else %}
+    <p>No average house price data available for Dublin1.</p>
+{% endif %}
+

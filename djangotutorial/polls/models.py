@@ -56,13 +56,13 @@ class AverageHousePrice(models.Model):
 
 class HousesRent(models.Model):
     title = models.CharField(max_length=255, verbose_name='Property Title')
-    price = models.CharField(max_length=50, verbose_name='Price')
+    price = models.PositiveIntegerField(verbose_name='Price')
     daft_link = models.URLField(max_length=500, verbose_name='Daft.ie Link')
     property_type = models.CharField(max_length=50, verbose_name='Property Type')
     location = models.CharField(max_length=100, verbose_name='Location')
-    facilities = models.JSONField(blank=True, null=True, verbose_name='Facilities')  
-    bedrooms = models.PositiveIntegerField(verbose_name='Number of Bedrooms')
-    bathrooms = models.PositiveIntegerField(verbose_name='Number of Bathrooms')
+    bedrooms = models.PositiveIntegerField(verbose_name='Number of Bedrooms',null=True, blank=True )
+    bathrooms = models.PositiveIntegerField(verbose_name='Number of Bathrooms',null=True,blank=True )
+    recorded_date = models.DateTimeField(verbose_name='Recorded Date',null=True, blank=True)
 
     def __str__(self):
         return f"{self.title} - {self.location}"
