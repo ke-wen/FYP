@@ -2,13 +2,18 @@
 <link rel="stylesheet" href="{% static 'polls/style.css' %}">
 <a href="{% url 'polls:list_houses' %}" class="btn btn-primary">View All Houses</a>
 <a href="{% url 'polls:show_data' %}" class="btn btn-secondary">View Dublin1 Data</a>
-{% if latest_question_list %}
+{% if latest_housesprice_list %}
     <ul>
-    {% for question in latest_question_list %}
-        <li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+    {% for house in latest_housesprice_list %}
+        <li>
+            Address: {{ house.eircode }}<br>
+            Price: €{{ house.value }}<br>
+            Date of Sale: {{ house.month }}<br>
+        </li>
     {% endfor %}
     </ul>
 {% else %}
-    <p>No polls are available.</p>
+    <p>No houses are available.</p>
 {% endif %}
+
 

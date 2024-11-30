@@ -1,23 +1,8 @@
 from django.contrib import admin
 from import_export import resources
-from .models import Choice, Question, House, AverageHousePrice, HousesRent ,AverageRent
+from .models import House, AverageHousePrice, HousesRent ,AverageRent , Propertysale ,Propertyrent
 from import_export.admin import ImportExportModelAdmin
 
-
-class ChoiceInline(admin.TabularInline):
-    model = Choice
-    extra = 3
-
-
-class QuestionAdmin(admin.ModelAdmin):
-    fieldsets = [
-        (None, {"fields": ["question_text"]}),
-        ("Date information", {"fields": ["pub_date"], "classes": ["collapse"]}),
-    ]
-    inlines = [ChoiceInline]
-    list_display = ["question_text", "pub_date", "was_published_recently"]
-    list_filter = ["pub_date"]
-    search_fields = ["question_text"]
 
 class HouseResource(resources.ModelResource):
     class Meta:
@@ -35,9 +20,9 @@ class AverageHousePriceResource(resources.ModelResource):
 
 class AverageHousePriceAdmin(ImportExportModelAdmin):
     resource_class = AverageHousePriceResource
-    list_display = ['month', 'dwelling_status', 'eircode', 'stamp_duty_event', 'type_of_buyer', 'unit', 'value']
-    list_filter = ['month', 'eircode', 'type_of_buyer']
-    search_fields = ['eircode', 'dwelling_status']
+    list_display = ['eircode', 'month', 'value']
+    list_filter = ['eircode', 'month']
+    search_fields = ['eircode', 'month']
 
 class HousesRentResource(resources.ModelResource):
     class Meta:
@@ -51,14 +36,34 @@ class HousesRentAdmin(ImportExportModelAdmin):
 
 class AverageRentResource(resources.ModelResource):
     class Meta:
-        model = AverageRent
+        model = AverageRent 
 class AverageRentAdmin(ImportExportModelAdmin):
+    resource_class = AverageRentResource
     list_display = ['eircode', 'month', 'average_rent']
     list_filter = ['eircode', 'month']
     search_fields = ['eircode', 'month']
 
+class PropertysaleResource(resources.ModelResource):
+    class Meta:
+        model = Propertysale
+class PropertysaleAdmin(ImportExportModelAdmin):
+    resource_class = PropertysaleResource
+    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date', 'country')  
+    search_fields = ('title', 'Property_Type', 'country')  
+    list_filter = ('Property_Type', 'country')  
+
+class PropertyrentResource(resources.ModelResource):
+    class Meta:
+        model = Propertyrent
+class PropertyrentAdmin(ImportExportModelAdmin):
+    resource_class = PropertyrentResource
+    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date', 'country')  
+    search_fields = ('title', 'Property_Type', 'country')  
+    list_filter = ('Property_Type', 'country')  
+    
+admin.site.register(Propertysale, PropertysaleAdmin)
+admin.site.register(Propertyrent, PropertyrentAdmin)
 admin.site.register(AverageRent, AverageRentAdmin)
 admin.site.register(HousesRent, HousesRentAdmin)    
 admin.site.register(House, HouseAdmin)
-admin.site.register(Question, QuestionAdmin)
 admin.site.register(AverageHousePrice, AverageHousePriceAdmin)
