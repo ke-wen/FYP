@@ -56,11 +56,10 @@ class Propertysale(models.Model):
     price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)  
     publish_date = models.DateTimeField(blank=True, null=True)  
     bedrooms = models.PositiveIntegerField(blank=True, null=True)  
-    bathrooms = models.PositiveIntegerField(blank=True, null=True)  
-    Latitude = models.FloatField(blank=True, null=True)  
-    longitude = models.FloatField(blank=True, null=True)  
+    bathrooms = models.PositiveIntegerField(blank=True, null=True)   
     propertySize = models.CharField(max_length=50, blank=True, null=True) 
     country = models.CharField(max_length=100, blank=True, null=True)  
+    link = models.URLField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return f"{self.title} - {self.Property_Type}"
@@ -74,8 +73,7 @@ class Propertyrent(models.Model):
     publish_date = models.DateTimeField(blank=True, null=True)  
     bedrooms = models.PositiveIntegerField(blank=True, null=True)  
     bathrooms = models.PositiveIntegerField(blank=True, null=True)  
-    Latitude = models.FloatField(blank=True, null=True)  
-    longitude = models.FloatField(blank=True, null=True)  
+    link = models.URLField(max_length=500, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)  
 
     def __str__(self):
