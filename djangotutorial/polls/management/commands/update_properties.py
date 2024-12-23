@@ -92,12 +92,14 @@ class Command(BaseCommand):
         return set(model.objects.values_list('id', flat=True))
 
     def bulk_insert_new(self, listings, model, is_sale=False):
-        """insert new data"""
-        existing_ids = self.fetch_existing_ids(model)
+        """Insert new data, ensuring no duplicates."""
+        existing_ids = self.fetch_existing_ids(model)  
+        seen_ids = set()  
         new_entries = []
 
         for listing in listings:
-            if listing.id not in existing_ids:
+            if listing.id not in existing_ids and listing.id not in seen_ids:
+                seen_ids.add(listing.id) 
                 ecode, country = to_country_and_ecode(listing.latitude, listing.longitude)
                 entry_data = {
                     'id': listing.id,
@@ -111,15 +113,16 @@ class Command(BaseCommand):
                     'bathrooms': int(float(to_num(listing._result.get("numBathrooms", "0")))) if listing._result.get("numBathrooms") else None,
                     'link': listing.daft_link,
                 }
-                # if is sale
-
                 if is_sale:
                     entry_data['propertySize'] = listing._result.get("propertySize", "N/A")
-
                 new_entries.append(model(**entry_data))
+            elif listing.id in seen_ids:
+                self.stdout.write(f"Duplicate ID found in new data: {listing.id}")
+        
         if new_entries:
             model.objects.bulk_create(new_entries)
-            self.stdout.write(f"Add {len(new_entries)} new datas")
+            self.stdout.write(f"Added {len(new_entries)} new records.")
+
 
     def handle(self, *args, **kwargs):
         daft = Daft()
