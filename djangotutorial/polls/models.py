@@ -58,7 +58,7 @@ class Propertysale(models.Model):
     bedrooms = models.PositiveIntegerField(blank=True, null=True)  
     bathrooms = models.PositiveIntegerField(blank=True, null=True)   
     propertySize = models.CharField(max_length=50, blank=True, null=True) 
-    country = models.CharField(max_length=100, blank=True, null=True)  
+    county = models.CharField(max_length=100, blank=True, null=True)  
     link = models.URLField(max_length=500, blank=True, null=True)
     is_active = models.BooleanField(default=True, verbose_name="Is Active")
 
@@ -75,7 +75,7 @@ class Propertyrent(models.Model):
     bedrooms = models.PositiveIntegerField(blank=True, null=True)  
     bathrooms = models.PositiveIntegerField(blank=True, null=True)  
     link = models.URLField(max_length=500, blank=True, null=True)
-    country = models.CharField(max_length=100, blank=True, null=True) 
+    county = models.CharField(max_length=100, blank=True, null=True) 
     is_active = models.BooleanField(default=True, verbose_name="Is Active") 
 
     def __str__(self):

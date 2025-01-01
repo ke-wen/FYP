@@ -48,18 +48,18 @@ class PropertysaleResource(resources.ModelResource):
         model = Propertysale
 class PropertysaleAdmin(ImportExportModelAdmin):
     resource_class = PropertysaleResource
-    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date', 'country')  
-    search_fields = ('title', 'Property_Type', 'country')  
-    list_filter = ('Property_Type', 'country')  
+    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date', 'county')  
+    search_fields = ('title', 'Property_Type', 'county')  
+    list_filter = ('Property_Type', 'county')  
 
 class PropertyrentResource(resources.ModelResource):
     class Meta:
         model = Propertyrent
 class PropertyrentAdmin(ImportExportModelAdmin):
     resource_class = PropertyrentResource
-    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date', 'country')  
-    search_fields = ('title', 'Property_Type', 'country')  
-    list_filter = ('Property_Type', 'country')  
+    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date', 'county')  
+    search_fields = ('title', 'Property_Type', 'county')  
+    list_filter = ('Property_Type', 'county')  
     
 admin.site.register(Propertysale, PropertysaleAdmin)
 admin.site.register(Propertyrent, PropertyrentAdmin)

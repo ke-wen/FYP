@@ -1,9 +1,43 @@
-li a {
-    color: green;
+.background {
+    background: url('http://127.0.0.1:8000/static/polls/images/Maps.png') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    justify-content: center; 
+    align-items: center;   
 }
-   
-body {
-    background: white url("images/Maps.png") no-repeat center center;
-    background-size: cover; 
-    height: 100vh; 
+
+
+.content {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 600px;
+    width: 90%; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center; 
+}
+
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+select, button {
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    margin: 5px 0;
+    font-size: 18px;
 }

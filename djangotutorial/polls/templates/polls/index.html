@@ -1,19 +1,47 @@
-{% load static %}
-<link rel="stylesheet" href="{% static 'polls/style.css' %}">
-<a href="{% url 'polls:list_houses' %}" class="btn btn-primary">View All Houses</a>
-<a href="{% url 'polls:show_data' %}" class="btn btn-secondary">View Dublin1 Data</a>
-{% if latest_housesprice_list %}
-    <ul>
-    {% for house in latest_housesprice_list %}
-        <li>
-            Address: {{ house.eircode }}<br>
-            Price: €{{ house.value }}<br>
-            Date of Sale: {{ house.month }}<br>
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No houses are available.</p>
-{% endif %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Filter</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'polls/style.css' %}">
+</head>
+<body>
+    <div class="background">
+        <div class="content">
+            <h1>Property Filter</h1>
 
+            <form method="get" action="">
+                <label for="county">County:</label>
+                <select name="county" id="county">
+                    <option value="">--Select County--</option>
+                    {% for option in counties %}
+                    <option value="{{ option }}" {% if selected_county == option %}selected{% endif %}>
+                        {{ option }}
+                    </option>
+                    {% endfor %}
+                </select>
 
+                <label for="bedrooms">Number of Bedrooms:</label>
+                <select name="bedrooms" id="bedrooms">
+                    <option value="">--Select Bedrooms--</option>
+                    {% for option in bedroom_options %}
+                    <option value="{{ option }}" {% if selected_bedrooms|default_if_none:'' == option|stringformat:"s" %}selected{% endif %}>
+                        {{ option }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit">Filter</button>
+            </form>
+
+            <h2>Results</h2>
+            <ul>
+                <li>Average Rent Price: {{ rent_avg_price }}</li>
+                <li>Average Sale Price: {{ sale_avg_price }}</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

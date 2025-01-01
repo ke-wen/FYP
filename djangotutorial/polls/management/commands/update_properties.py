@@ -75,7 +75,7 @@ def to_num(price_string):
         return None
     return None
 
-def to_country_and_ecode(latitude, longitude):
+def to_county_and_ecode(latitude, longitude):
     """Get ecode and city"""
     postal_code = get_postal_code(latitude, longitude)
     if postal_code:
@@ -110,12 +110,12 @@ class Command(BaseCommand):
                 # If the data does not exist, insert a new record
                 seen_ids.add(listing.id)
                 updated_entries.add(listing.id)
-                ecode, country = to_country_and_ecode(listing.latitude, listing.longitude)
+                ecode, county = to_county_and_ecode(listing.latitude, listing.longitude)
                 entry_data = {
                     'id': listing.id,
                     'title': listing._result.get('title') or listing._result.get('seoTitle', 'N/A'),
                     'ecode': ecode,
-                    'country': country,
+                    'county': county,
                     'Property_Type': listing._result.get('propertyType'),
                     'price': to_num(listing.price),
                     'publish_date': listing.publish_date,
