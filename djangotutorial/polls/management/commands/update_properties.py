@@ -148,13 +148,13 @@ class Command(BaseCommand):
         # Get data on properties for sale
         daft.set_search_type(SearchType.RESIDENTIAL_SALE)
         sale_listings = daft.search()
-        self.stdout.write(f"find {len(sale_listings)} properties for sale")
+        self.stdout.write(f"Found {len(sale_listings)} properties for sale")
         self.bulk_insert_new(sale_listings, Propertysale, is_sale=True)
 
         # Get data on properties for rent
         daft.set_search_type(SearchType.RESIDENTIAL_RENT)
         rent_listings = daft.search()
-        self.stdout.write(f"find {len(rent_listings)} properties for rent")
+        self.stdout.write(f"Found {len(rent_listings)} properties for rent")
         self.bulk_insert_new(rent_listings, Propertyrent, is_sale=False)
 
         self.stdout.write("Database update completed")

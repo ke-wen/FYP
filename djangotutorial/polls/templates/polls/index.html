@@ -3,32 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Property Filter</title>
+    <title>Property Calculator</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'polls/style.css' %}">
 </head>
 <body>
     <div class="background">
         <div class="content">
-            <h1>Property Filter</h1>
-
-            <form method="get" action="">
+            <h1>Property Calculator</h1>
+            <!-- Filter Form -->
+            <form method="get">
+                <!-- County Selection -->
                 <label for="county">County:</label>
-                <select name="county" id="county">
-                    <option value="">--Select County--</option>
-                    {% for option in counties %}
-                    <option value="{{ option }}" {% if selected_county == option %}selected{% endif %}>
-                        {{ option }}
-                    </option>
+                <select id="county" name="county">
+                    <option value="">Select County</option>
+                    {% for county in counties %}
+                    <option value="{{ county }}" {% if county == selected_county %}selected{% endif %}>{{ county }}</option>
                     {% endfor %}
                 </select>
 
-                <label for="bedrooms">Number of Bedrooms:</label>
-                <select name="bedrooms" id="bedrooms">
-                    <option value="">--Select Bedrooms--</option>
-                    {% for option in bedroom_options %}
-                    <option value="{{ option }}" {% if selected_bedrooms|default_if_none:'' == option|stringformat:"s" %}selected{% endif %}>
-                        {{ option }}
+                <!-- Bedrooms Selection -->
+                <label for="bedrooms">Bedrooms:</label>
+                <select id="bedrooms" name="bedrooms">
+                    <option value="">Select Bedrooms</option>
+                    {% for bedroom in bedroom_options %}
+                    <option value="{{ bedroom }}" {% if selected_bedrooms|default_if_none:'' == bedroom|stringformat:"s" %}selected{% endif %}>
+                        {{ bedroom }}
                     </option>
                     {% endfor %}
                 </select>
@@ -36,11 +36,19 @@
                 <button type="submit">Filter</button>
             </form>
 
-            <h2>Results</h2>
+            <!-- Display Results -->
             <ul>
-                <li>Average Rent Price: {{ rent_avg_price }}</li>
-                <li>Average Sale Price: {{ sale_avg_price }}</li>
+                <li><strong>Average Rent Price:</strong> {{ rent_avg_price }}</li>
+                <li><strong>Average Sale Price:</strong> {{ sale_avg_price }}</li>
+                <li><strong>Rental Yield:</strong> {{ rental_yield }}</li>
+                <li><strong>All Risk Yield for 5 year investment:</strong> {{ all_risk_yield }}</li>
             </ul>
+
+            <!-- Button -->
+            <div class="button-container">
+                <a href="{% url 'polls:information' %}" class="button">Information</a>
+                <a href="{% url 'polls:home' %}" class="button">Back to Homepage</a>
+            </div>
         </div>
     </div>
 </body>
