@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from polls.models import Propertysale, Propertyrent
 from geopy.geocoders import Nominatim
 #Dictionary of the first three digits of the postal code and the city it corresponds to
+#可更新区域为都柏林几区
 eircode_to_city = {
     "D01": "Dublin", "D02": "Dublin", "D03": "Dublin", "D04": "Dublin",
     "D05": "Dublin", "D06": "Dublin", "D07": "Dublin", "D08": "Dublin",

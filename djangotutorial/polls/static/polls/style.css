@@ -48,4 +48,45 @@ ul {
 li {
     margin: 5px 0;
     font-size: 18px;
+    
+}
+.property-table {
+    width: 100%;
+    max-width: 800px; /* 限制最大宽度，使表格不超出内容区域 */
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+    text-align: center;
+}
+
+.property-table th, .property-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.property-table th {
+    background-color: #007bff;
+    color: white;
+}
+
+.property-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* 让表格在小屏幕下不会溢出 */
+.property-table-container {
+    width: 100%;
+    overflow-x: auto; /* 如果屏幕过小，允许表格横向滚动 */
+    margin-top: 20px;
+}
+
+/* 链接样式 */
+.property-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.property-link:hover {
+    text-decoration: underline;
 }
