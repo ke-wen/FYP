@@ -36,6 +36,10 @@
                 <button type="submit">Filter</button>
             </form>
 
+            {% if selected_county %}
+            <a href="{% url 'polls:boxplot' %}?county={{ selected_county }}" class="button">View Box-Plot</a>
+            {% endif %}
+
             <!-- Display Results -->
             <ul>
                 <li><strong>Average Rent Price:</strong> {{ rent_avg_price }}</li>

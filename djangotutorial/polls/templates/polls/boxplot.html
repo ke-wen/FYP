@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Yield Box-Plot</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'polls/style.css' %}">
+</head>
+
+<body>
+    <div class="background">
+        <div class="content">
+            <h1>Rental Yield Box-Plot</h1>
+            <h2>{{ selected_county }}</h2>
+            {% if error %}
+                <p>{{ error }}</p>
+            {% else %}
+                <img src="data:image/png;base64,{{ graphic }}" alt="Rental Yield Box Plot">
+            {% endif %}
+            <div class="button-container">
+                <a href="{% url 'polls:property_calculator' %}" class="button">Back to Calculator</a>
+                <a href="{% url 'polls:home' %}" class="select-button">Back to Homepage</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

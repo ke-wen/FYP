@@ -3,17 +3,20 @@ from polls.models import Propertysale, Propertyrent
 
 # 更新后的 Dublin & Greater Dublin Area 对应字典
 eircode_to_city = {
-    "D01": "Dublin 1", "D02": "Dublin 2", "D03": "Dublin 3", "D04": "Dublin 4",
-    "D05": "Dublin 5", "D06": "Dublin 6", "D07": "Dublin 7", "D08": "Dublin 8",
-    "D09": "Dublin 9", "D10": "Dublin 10", "D11": "Dublin 11", "D12": "Dublin 12",
-    "D13": "Dublin 13", "D14": "Dublin 14", "D15": "Dublin 15", "D16": "Dublin 16",
-    "D17": "Dublin 17", "D18": "Dublin 18", "D20": "Dublin 20", "D22": "Dublin 22",
-    "D24": "Dublin 24", "D6W": "Dublin 6W",
-    "A94": "Blackrock", "A96": "Glenageary", "A98": "Bray",
-    "A41": "Ballyboughal", "A42": "Garristown", "A45": "Oldtown",
-    "A84": "Ashbourne", "A85": "Dunshaughlin", "A86": "Dunboyne",
-    "K32": "Balbriggan", "K34": "Skerries", "K36": "Malahide",
-    "K45": "Lusk", "K56": "Rush", "K67": "Swords", "K78": "Lucan",
+    "D01": "Dublin", "D02": "Dublin", "D03": "Dublin", "D04": "Dublin",
+    "D05": "Dublin", "D06": "Dublin", "D07": "Dublin", "D08": "Dublin",
+    "D09": "Dublin", "D10": "Dublin", "D11": "Dublin", "D12": "Dublin",
+    "D13": "Dublin", "D14": "Dublin", "D15": "Dublin", "D16": "Dublin",
+    "D17": "Dublin", "D18": "Dublin", "D20": "Dublin", "D22": "Dublin",
+    "D24": "Dublin", "D6W": "Dublin",
+    "A94": "Dublin", "A96": "Dublin", "A98": "Dublin",
+    "A41": "Greater Dublin Area", "A42": "Greater Dublin Area",
+    "A45": "Greater Dublin Area", "A84": "Greater Dublin Area",
+    "A85": "Greater Dublin Area", "A86": "Greater Dublin Area",
+    "K32": "Greater Dublin Area", "K34": "Greater Dublin Area",
+    "K36": "Greater Dublin Area", "K45": "Greater Dublin Area",
+    "K56": "Greater Dublin Area", "K67": "Greater Dublin Area",
+    "K78": "Greater Dublin Area",
     "A63": "Wicklow", "A67": "Wicklow", "A75": "Monaghan",
     "A81": "Monaghan", "A82": "Meath", "A83": "Meath",
     "A91": "Louth", "A92": "Louth", "C15": "Meath",
@@ -44,7 +47,6 @@ eircode_to_city = {
     "X42": "Waterford", "X91": "Waterford", "Y14": "Wicklow", "Y21": "Wexford",
     "Y25": "Wexford", "Y34": "Wexford", "Y35": "Wexford"
 }
-
 class Command(BaseCommand):
     help = "Force update county names in Propertysale and Propertyrent tables based on first 3 characters of ecode."
 
@@ -53,7 +55,7 @@ class Command(BaseCommand):
         for property in model.objects.all():
             if property.ecode and len(property.ecode) >= 3:  # 确保 ecode 存在且长度足够
                 ecode_prefix = property.ecode[:3]  # 取前三位
-                new_county = eircode_to_city.get(ecode_prefix, None)
+                new_county = eircode_to_city.get(ecode_prefix, "Unknown")
                 if new_county:  # 只要找到新值就直接更新
                     property.county = new_county
                     property.save()

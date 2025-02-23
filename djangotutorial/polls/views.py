@@ -9,11 +9,18 @@ from django.http import Http404
 from django.utils import timezone
 from .models import House
 from .models import AverageRent, AverageHousePrice ,Propertyrent, Propertysale
-from django.views.generic import TemplateView
-# pip install numpy-financial
 import numpy_financial as npf
+from django.views.generic import TemplateView
+from collections import defaultdict
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
+import seaborn as sns
+import urllib, base64
+import pandas as pd
+import io
 
-
+from .models import Propertysale, Propertyrent  # 确保正确导入模型
 
 def calculate_all_risk_yield(initial_investment, monthly_rent, maintenance_percentage, sale_price_growth_rate, holding_period, income_growth_rate, rental_review_period=1):
     net_annual_income = monthly_rent * 12
@@ -170,6 +177,76 @@ class IndexView(View):
 
 class InformationView(TemplateView):
     template_name = "polls/information.html"
+
+
+
+
+class BoxPlotView(View):
+    template_name = "polls/boxplot.html"
+
+    def get(self, request):
+        selected_county = request.GET.get('county', '')
+
+        if not selected_county:
+            return render(request, self.template_name, {'error': "No county selected"})
+
+        # 获取该县的房产数据，并排除 bedrooms=None 的数据
+        query = Q(is_active=True) & Q(county=selected_county) & Q(bedrooms__isnull=False)
+        sale_properties = Propertysale.objects.filter(query).values('bedrooms', 'price')
+        rent_properties = Propertyrent.objects.filter(query).values('bedrooms', 'price')
+
+        # 计算 Rental Yield
+        rental_yield_data = defaultdict(list)
+
+        # 预计算不同房间数的平均租金
+        rent_prices_by_bedrooms = defaultdict(list)
+        for rent in rent_properties:
+            if rent['price'] is not None:  # 确保租金不为空
+                rent_prices_by_bedrooms[rent['bedrooms']].append(rent['price'])
+
+        avg_rent_by_bedrooms = {
+            k: sum(v) / len(v) for k, v in rent_prices_by_bedrooms.items() if v
+        }
+
+        for sale in sale_properties:
+            bedrooms = sale['bedrooms']
+            sale_price = sale['price']
+
+            if sale_price and bedrooms in avg_rent_by_bedrooms:
+                avg_rent = avg_rent_by_bedrooms[bedrooms]
+                rental_yield = (avg_rent * 12 / sale_price) * 100
+                rental_yield_data[bedrooms].append(rental_yield)
+
+        if not rental_yield_data:
+            return render(request, self.template_name, {'error': "No valid Rental Yield data available for this county"})
+
+        # **按照 bedrooms 从小到大排序**
+        sorted_bedrooms = sorted(rental_yield_data.keys())
+        data = pd.DataFrame({str(k): pd.Series(rental_yield_data[k]) for k in sorted_bedrooms})
+
+        # **创建 Box Plot**
+        plt.figure(figsize=(8, 6))
+        sns.boxplot(data=data, order=[str(k) for k in sorted_bedrooms])  # 确保 X 轴排序正确
+
+        y_max = max([max(v) for v in rental_yield_data.values()]) if rental_yield_data else 40
+        plt.ylim(0, min(40, y_max + 5))  
+
+        plt.xlabel("Number of Bedrooms")
+        plt.ylabel("Rental Yield (%)")
+
+        plt.title(f"Rental Yield Box Plot for {selected_county}")
+
+        # **保存图像并转成 Base64**
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format="png")
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+        plt.close()  # 释放 Matplotlib 资源，防止内存泄漏
+
+        graphic = base64.b64encode(image_png).decode()
+
+        return render(request, self.template_name, {'graphic': graphic, 'selected_county': selected_county})
 
 """
 Sql query for test:
