@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookmarked Properties</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'polls/style.css' %}">
+</head>
+<body>
+    <div class="background">
+        <div class="content">
+            <h1>My Bookmarked Properties</h1>
+
+            
+            {% if bookmarks %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Bedrooms</th>
+                            <th>Bathrooms</th>
+                            <th>Price (€)</th>
+                            <th>County</th>
+                            <th>Date Bookmarked</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bookmark in bookmarks %}
+                        <tr>
+                            <td>{{ bookmark.property.title }}</td>
+                            <td>{{ bookmark.property.bedrooms }}</td>
+                            <td>{{ bookmark.property.bathrooms }}</td>
+                            <td>{{ bookmark.property.price }} €</td>
+                            <td>{{ bookmark.property.county }}</td>
+                            <td>{{ bookmark.bookmark_date|date:"d M Y" }}</td>
+                            <td><a href="{{ bookmark.property.link }}" class="property-link" target="_blank">View</a></td>
+                            <td>
+                                <form method="post" action="{% url 'polls:remove_bookmark' bookmark.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="remove-button">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>You haven't bookmarked any properties yet.</p>
+            {% endif %}
+            
+            <div class="button-container">
+                <a href="{% url 'polls:property_calculator' %}" class="button">Back to Calculator</a>
+                <a href="{% url 'polls:home' %}" class="select-button">Back to Homepage</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Record scroll position
+        window.addEventListener('beforeunload', function() {
+            sessionStorage.setItem('scrollPosition', window.scrollY);
+        });
+    
+        // Restore scroll position after page load completes
+        window.addEventListener('load', function() {
+            const scrollPos = sessionStorage.getItem('scrollPosition');
+            if (scrollPos) {
+                window.scrollTo(0, parseInt(scrollPos, 10));
+            }
+        });
+        </script>
+</body>
+</html>

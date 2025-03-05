@@ -7,20 +7,23 @@ from django.shortcuts import get_object_or_404, render
 from django.template import loader
 from django.http import Http404
 from django.utils import timezone
+import matplotlib
+matplotlib.use('Agg')
 from .models import House
 from .models import AverageRent, AverageHousePrice ,Propertyrent, Propertysale
 import numpy_financial as npf
 from django.views.generic import TemplateView
 from collections import defaultdict
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use('Agg')
+from django.shortcuts import redirect
+from django.contrib import messages
+from .models import Bookmark
 import seaborn as sns
 import urllib, base64
 import pandas as pd
 import io
 
-from .models import Propertysale, Propertyrent  # 确保正确导入模型
+
 
 def calculate_all_risk_yield(initial_investment, monthly_rent, maintenance_percentage, sale_price_growth_rate, holding_period, income_growth_rate, rental_review_period=1):
     net_annual_income = monthly_rent * 12
@@ -43,29 +46,26 @@ def calculate_all_risk_yield(initial_investment, monthly_rent, maintenance_perce
 class HomeView(TemplateView):
     template_name = "polls/home.html" 
 
+
 class IndexView(View):
     template_name = "polls/index.html"
 
     def get(self, request):
-        # Get filter options
+        # Existing filtering and query code...
+        # ---------------------------------------------------------
         selected_county = request.GET.get('county', '')
         selected_bedrooms = request.GET.get('bedrooms', '')
 
-        # Query all county and bedroom options.
         rent_counties = Propertyrent.objects.filter(is_active=True).values_list('county', flat=True).distinct()
         sale_counties = Propertysale.objects.filter(is_active=True).values_list('county', flat=True).distinct()
         rent_bedrooms = Propertyrent.objects.filter(is_active=True).values_list('bedrooms', flat=True).distinct()
         sale_bedrooms = Propertysale.objects.filter(is_active=True).values_list('bedrooms', flat=True).distinct()
 
-        # Merge options and remove N/A values
         counties = sorted(set(filter(None, chain(rent_counties, sale_counties))))
         bedroom_options = sorted(set(filter(None, chain(rent_bedrooms, sale_bedrooms))))
-
-        # Insert the "All" option
-        counties.insert(0, "All") 
+        counties.insert(0, "All")
         bedroom_options.insert(0, "All")
-        
-        # Do not show properties by default
+
         if not selected_county and not selected_bedrooms:
             return render(request, self.template_name, {
                 'counties': counties,
@@ -76,101 +76,109 @@ class IndexView(View):
                 'sale_avg_price': "N/A",
                 'rental_yield': "N/A",
                 'all_risk_yield': "N/A",
-                'all_properties': []  
+                'all_properties': []
             })
 
-        # Build filter query
         query = Q(is_active=True)
         if selected_county and selected_county != "All":
             query &= Q(county=selected_county)
-
         if selected_bedrooms and selected_bedrooms != "All":
             try:
-                query &= Q(bedrooms=int(selected_bedrooms))  
+                query &= Q(bedrooms=int(selected_bedrooms))
             except ValueError:
-                pass  
+                pass
 
-        # Calculate average rent and sale prices
         rent_avg_price = Propertyrent.objects.filter(query).aggregate(avg_price=Avg('price'))['avg_price']
         sale_avg_price = Propertysale.objects.filter(query).aggregate(avg_price=Avg('price'))['avg_price']
-
-        # Format results to two decimal, if no value set as "N/A"
         rent_avg_price = f"{rent_avg_price:.2f} €" if rent_avg_price is not None else "N/A"
         sale_avg_price = f"{sale_avg_price:.2f} €" if sale_avg_price is not None else "N/A"
 
-        # Calculate Rental Yield and All Risk Yield
         if rent_avg_price != "N/A" and sale_avg_price != "N/A":
-            rent_avg_price_num = float(rent_avg_price[:-2])  # Remove € and convert to float
+            rent_avg_price_num = float(rent_avg_price[:-2])
             sale_avg_price_num = float(sale_avg_price[:-2])
-            rental_yield = f"{(rent_avg_price_num * 12 / sale_avg_price_num) * 100:.2f} %"# Calculate Rental Yield
-            # Calculate All Risk Yield
-            initial_investment = sale_avg_price_num
-            monthly_rent = rent_avg_price_num 
-            maintenance_percentage = 0.34
-            sale_price_growth_rate = 0.052
-            holding_period = 5
-            income_growth_rate = 0.02
-            rental_review_period = 1
+            rental_yield = f"{(rent_avg_price_num * 12 / sale_avg_price_num) * 100:.2f} %"
 
-            all_risk_yield = calculate_all_risk_yield(
-                initial_investment, monthly_rent, maintenance_percentage, sale_price_growth_rate,
-                holding_period, income_growth_rate, rental_review_period
+            # All Risk Yield example calculation
+            all_risk_yield_value = calculate_all_risk_yield(
+                initial_investment=sale_avg_price_num,
+                monthly_rent=rent_avg_price_num,
+                maintenance_percentage=0.34,
+                sale_price_growth_rate=0.052,
+                holding_period=5,
+                income_growth_rate=0.02,
+                rental_review_period=1
             )
-            all_risk_yield = f"{all_risk_yield:.2f} %"
+            all_risk_yield = f"{all_risk_yield_value:.2f} %"
         else:
             rental_yield = "N/A"
             all_risk_yield = "N/A"
 
-        # Fetch matching selling properties for the table
-        filtered_sale_properties = Propertysale.objects.filter(query).values('title', 'bedrooms', 'bathrooms', 'price', 'link')
+        # ---------------------------------------------------------
+        # 1. Identify which properties this user has already bookmarked
+        user_identifier = request.session.get('user_id')
+        if user_identifier:
+            # Return (property_id, bookmark_id) for each bookmarked property
+            user_bookmarks = Bookmark.objects.filter(user=user_identifier).values_list('property_id', 'id')
+            bookmark_id_by_property_id = {prop_id: bm_id for prop_id, bm_id in user_bookmarks}
+        else:
+            bookmark_id_by_property_id = {}
+
+        # 2. Build up the property list, noting whether each property is bookmarked
+        filtered_sale_properties = Propertysale.objects.filter(query).values(
+            'id', 'title', 'bedrooms', 'bathrooms', 'price', 'link'
+        )
 
         property_list = []
-        for property in filtered_sale_properties:
-            property_price = property['price']
+        for prop in filtered_sale_properties:
+            property_price = prop['price']
             prop_rental_yield = "N/A"
             prop_all_risk_yield = "N/A"
 
-            if property_price is None and rent_avg_price == "N/A":
-                property_price = "N/A"
-
-            elif property_price is not None and rent_avg_price == "N/A":
+            # Convert price to float if not None
+            if property_price is not None:
                 property_price = float(property_price)
 
-            elif property_price is not None and rent_avg_price != "N/A":
-                property_price = float(property_price)
-                rent_avg_price_num = float(rent_avg_price[:-2]) 
-                
-                # Calculate rental yield for this property
-                prop_rental_yield = f"{(rent_avg_price_num * 12 / property_price) * 100:.2f} %"
+                # If we have a valid rent_avg_price
+                if rent_avg_price != "N/A":
+                    rent_avg_price_num = float(rent_avg_price[:-2])
+                    prop_rental_yield = f"{(rent_avg_price_num * 12 / property_price) * 100:.2f} %"
 
-                # Calculate All Risk Yield for this property
-                prop_all_risk_yield = calculate_all_risk_yield(
-                    property_price, rent_avg_price_num, maintenance_percentage, sale_price_growth_rate,
-                    holding_period, income_growth_rate, rental_review_period
-                )
-                prop_all_risk_yield = f"{prop_all_risk_yield:.2f} %"
+                    prop_all_risk_yield_value = calculate_all_risk_yield(
+                        property_price, 
+                        rent_avg_price_num,
+                        0.34,
+                        0.052,
+                        5,
+                        0.02,
+                        1
+                    )
+                    prop_all_risk_yield = f"{prop_all_risk_yield_value:.2f} %"
 
-            # Append property with yield
             property_list.append({
-                **property,
+                **prop,
                 'rental_yield': prop_rental_yield,
-                'all_risk_yield': prop_all_risk_yield
+                'all_risk_yield': prop_all_risk_yield,
+                # Check if current property is bookmarked
+                'bookmark_id': bookmark_id_by_property_id.get(prop['id'])
             })
-        # Sort by Rental Yield from high to low, N/A at the end
-        property_list.sort(key=lambda x: (float(x['rental_yield'].replace(' %', '')) if x['rental_yield'] != "N/A" else -1), reverse=True)
-        # Update context with the processed properties
+
+        # Sort by Rental Yield
+        def rental_yield_float(ry):
+            return float(ry.replace(' %', '')) if ry != "N/A" else -1
+
+        property_list.sort(key=lambda x: rental_yield_float(x['rental_yield']), reverse=True)
+
         context = {
             'counties': counties,
             'bedroom_options': bedroom_options,
             'selected_county': selected_county,
             'selected_bedrooms': selected_bedrooms,
-            'rent_avg_price': rent_avg_price, 
+            'rent_avg_price': rent_avg_price,
             'sale_avg_price': sale_avg_price,
             'rental_yield': rental_yield,
             'all_risk_yield': all_risk_yield,
-            'all_properties': property_list, 
+            'all_properties': property_list,
         }
-
         return render(request, self.template_name, context)
 
 
@@ -186,68 +194,178 @@ class BoxPlotView(View):
 
     def get(self, request):
         selected_county = request.GET.get('county', '')
-
         if not selected_county:
             return render(request, self.template_name, {'error': "No county selected"})
 
-        # 获取该县的房产数据，并排除 bedrooms=None 的数据
         query = Q(is_active=True) & Q(county=selected_county) & Q(bedrooms__isnull=False)
         sale_properties = Propertysale.objects.filter(query).values('bedrooms', 'price')
         rent_properties = Propertyrent.objects.filter(query).values('bedrooms', 'price')
 
-        # 计算 Rental Yield
         rental_yield_data = defaultdict(list)
+        all_risk_yield_data = defaultdict(list)
 
-        # 预计算不同房间数的平均租金
+        # Collect average rent by bedrooms
         rent_prices_by_bedrooms = defaultdict(list)
         for rent in rent_properties:
-            if rent['price'] is not None:  # 确保租金不为空
-                rent_prices_by_bedrooms[rent['bedrooms']].append(rent['price'])
+            if rent['price'] is not None:
+                rent_prices_by_bedrooms[rent['bedrooms']].append(float(rent['price']))
 
         avg_rent_by_bedrooms = {
             k: sum(v) / len(v) for k, v in rent_prices_by_bedrooms.items() if v
         }
 
+        # Calculate yields
         for sale in sale_properties:
             bedrooms = sale['bedrooms']
-            sale_price = sale['price']
+            sale_price = float(sale['price']) if sale['price'] else None
 
             if sale_price and bedrooms in avg_rent_by_bedrooms:
                 avg_rent = avg_rent_by_bedrooms[bedrooms]
-                rental_yield = (avg_rent * 12 / sale_price) * 100
-                rental_yield_data[bedrooms].append(rental_yield)
+
+                # Rental Yield
+                ry = (avg_rent * 12 / sale_price) * 100
+                rental_yield_data[bedrooms].append(ry)
+
+                # All Risk Yield
+                maintenance_percentage = 0.34
+                sale_price_growth_rate = 0.052
+                holding_period = 5
+                income_growth_rate = 0.02
+                rental_review_period = 1
+
+                ary = calculate_all_risk_yield(
+                    sale_price,
+                    avg_rent,
+                    maintenance_percentage,
+                    sale_price_growth_rate,
+                    holding_period,
+                    income_growth_rate,
+                    rental_review_period
+                )
+                all_risk_yield_data[bedrooms].append(ary)
 
         if not rental_yield_data:
-            return render(request, self.template_name, {'error': "No valid Rental Yield data available for this county"})
+            return render(request, self.template_name, {
+                'error': "No valid Rental Yield data available for this county"
+            })
 
-        # **按照 bedrooms 从小到大排序**
         sorted_bedrooms = sorted(rental_yield_data.keys())
-        data = pd.DataFrame({str(k): pd.Series(rental_yield_data[k]) for k in sorted_bedrooms})
 
-        # **创建 Box Plot**
+        # Rental Yield Box Plot
+        buffer_rental = io.BytesIO()
         plt.figure(figsize=(8, 6))
-        sns.boxplot(data=data, order=[str(k) for k in sorted_bedrooms])  # 确保 X 轴排序正确
+        rental_data = pd.DataFrame({
+            str(k): pd.Series(rental_yield_data[k]) for k in sorted_bedrooms
+        })
+        sns.boxplot(data=rental_data, order=[str(k) for k in sorted_bedrooms])
+        ax_rental = plt.gca()
 
-        y_max = max([max(v) for v in rental_yield_data.values()]) if rental_yield_data else 40
-        plt.ylim(0, min(40, y_max + 5))  
+        ylim = ax_rental.get_ylim()
+        offset = 0.05 * (ylim[1] - ylim[0])  
+
+        for i, b in enumerate(sorted_bedrooms):
+            n = len(rental_yield_data[b])
+            ax_rental.text(
+                x=i,
+                y=ylim[1] - offset,
+                s=f"Number on sale: {n}",
+                ha='center',
+                va='top',
+                fontsize=9
+            )
 
         plt.xlabel("Number of Bedrooms")
         plt.ylabel("Rental Yield (%)")
-
         plt.title(f"Rental Yield Box Plot for {selected_county}")
+        plt.savefig(buffer_rental, format="png", bbox_inches='tight')
+        buffer_rental.seek(0)
+        graphic_rental = base64.b64encode(buffer_rental.getvalue()).decode()
+        buffer_rental.close()
+        plt.close()
 
-        # **保存图像并转成 Base64**
-        buffer = io.BytesIO()
-        plt.savefig(buffer, format="png")
-        buffer.seek(0)
-        image_png = buffer.getvalue()
-        buffer.close()
-        plt.close()  # 释放 Matplotlib 资源，防止内存泄漏
+        # All Risk Yield Box Plot
+        buffer_all_risk = io.BytesIO()
+        if all_risk_yield_data:
+            plt.figure(figsize=(8, 6))
+            all_risk_data = pd.DataFrame({
+                str(k): pd.Series(all_risk_yield_data[k]) for k in sorted_bedrooms
+            })
+            sns.boxplot(data=all_risk_data, order=[str(k) for k in sorted_bedrooms])
+            ax_ary = plt.gca()
 
-        graphic = base64.b64encode(image_png).decode()
+            ylim_ary = ax_ary.get_ylim()
+            offset_ary = 0.05 * (ylim_ary[1] - ylim_ary[0])
 
-        return render(request, self.template_name, {'graphic': graphic, 'selected_county': selected_county})
+            for i, b in enumerate(sorted_bedrooms):
+                n_ary = len(all_risk_yield_data[b])
+                ax_ary.text(
+                    x=i,
+                    y=ylim_ary[1] - offset_ary,
+                    s=f"Number on sale: {n_ary}",
+                    ha='center',
+                    va='top',
+                    fontsize=9
+                )
 
+            plt.xlabel("Number of Bedrooms")
+            plt.ylabel("All Risk Yield (%)")
+            plt.title(f"All Risk Yield Box Plot for {selected_county}")
+            plt.savefig(buffer_all_risk, format="png", bbox_inches='tight')
+            buffer_all_risk.seek(0)
+            graphic_all_risk = base64.b64encode(buffer_all_risk.getvalue()).decode()
+            buffer_all_risk.close()
+            plt.close()
+        else:
+            graphic_all_risk = None
+
+        return render(request, self.template_name, {
+            'graphic_rental': graphic_rental,
+            'graphic_all_risk': graphic_all_risk,
+            'selected_county': selected_county
+        })
+# django ploty
+
+
+
+def bookmark_property(request):
+    if request.method == 'POST':
+        property_id = request.POST.get('property_id')
+        user_identifier = request.session.get('user_id', None)
+        
+        # Create a user identifier if none exists
+        if not user_identifier:
+            import uuid
+            user_identifier = str(uuid.uuid4())
+            request.session['user_id'] = user_identifier
+        
+        # Check if already bookmarked
+        existing = Bookmark.objects.filter(property_id=property_id, user=user_identifier).exists()
+        
+        if not existing:
+            property_obj = get_object_or_404(Propertysale, id=property_id)
+            Bookmark.objects.create(property=property_obj, user=user_identifier)
+            
+        return redirect(request.META.get('HTTP_REFERER', 'polls:property_calculator'))
+
+def view_bookmarks(request):
+    user_identifier = request.session.get('user_id', None)
+    
+    if not user_identifier:
+        bookmarks = []
+    else:
+        bookmarks = Bookmark.objects.filter(user=user_identifier).select_related('property')
+        
+    return render(request, 'polls/bookmarks.html', {'bookmarks': bookmarks})
+
+def remove_bookmark(request, bookmark_id):
+    user_identifier = request.session.get('user_id', None)
+    
+    if user_identifier:
+        bookmark = get_object_or_404(Bookmark, id=bookmark_id, user=user_identifier)
+        bookmark.delete()
+    next_url = request.META.get('HTTP_REFERER', 'polls:property_calculator')
+    return redirect(next_url)
+        
 """
 Sql query for test:
 SELECT AVG(price) AS avg_rent_price
@@ -256,5 +374,3 @@ WHERE is_active = TRUE
   AND county = 'Dublin'
   AND bedrooms = 3;
 """
-
-

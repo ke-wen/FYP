@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Property Calculator</title>
+    <!-- Hide loading effects -->
+    <style>
+        html.hidden {
+          opacity: 0;           
+          transition: opacity 0s;
+        }
+    </style>
+    <script>
+        document.documentElement.classList.add("hidden");
+    </script>
+
     {% load static %}
     <link rel="stylesheet" href="{% static 'polls/style.css' %}">
 </head>
@@ -35,21 +46,38 @@
 
                 <button type="submit">Filter</button>
             </form>
-
-            {% if selected_county %}
-            <a href="{% url 'polls:boxplot' %}?county={{ selected_county }}" class="button">View Box-Plot</a>
-            {% endif %}
-
+    
             <!-- Display Results -->
-            <ul>
-                <li><strong>Average Rent Price:</strong> {{ rent_avg_price }}</li>
-                <li><strong>Average Sale Price:</strong> {{ sale_avg_price }}</li>
-                <li><strong>Rental Yield:</strong> {{ rental_yield }}</li>
-                <li><strong>All Risk Yield for 5 year investment:</strong> {{ all_risk_yield }}</li>
-            </ul>
+            <div class="Chuck">
+                <div class="card">
+                    <div class="card-title">Average Rent Price</div>
+                    <div class="card-value">{{ rent_avg_price }}</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Average Sale Price</div>
+                    <div class="card-value">{{ sale_avg_price }}</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Rental Yield</div>
+                    <div class="card-value">{{ rental_yield }}</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">All Risk Yield (5-Year)</div>
+                    <div class="card-value">{{ all_risk_yield }}</div>
+                </div>
+            </div>
+            <!-- Button -->
+            <div class="button-container">
+                {% if selected_county %}
+                <a href="{% url 'polls:boxplot' %}?county={{ selected_county }}" class="button">View Box-Plot</a>
+                {% endif %}
+                <a href="{% url 'polls:information' %}" class="button">Information</a>
+                <a href="{% url 'polls:home' %}" class="button">Back to Homepage</a>
+            </div>        
+            
             {% if all_properties %}
             <h2>Available Properties for Sale</h2>
-            <table>
+            <table class="tablelist">
                 <thead>
                     <tr>
                         <th>Title</th>
@@ -59,6 +87,7 @@
                         <th>Rental Yield</th>
                         <th>All Risk Yield (5-Year)</th>
                         <th>Link</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -70,20 +99,46 @@
                         <td>{{ property.price }} €</td>
                         <td>{{ property.rental_yield }}</td>
                         <td>{{ property.all_risk_yield }}</td>
-                        <td><a href="{{ property.link }}" class="property-link" target="_blank">View</a></td>
+                        <td>
+                            <a href="{{ property.link }}" class="property-link" target="_blank">View</a>
+                        </td>
+                        <td>
+                            {% if property.bookmark_id %}
+                                <form method="post" action="{% url 'polls:remove_bookmark' property.bookmark_id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="remove-button">Remove</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{% url 'polls:bookmark_property' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="property_id" value="{{ property.id }}">
+                                    <button type="submit" class="bookmark-button">Bookmark</button>
+                                </form>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table>            
         {% else %}
             <p>No properties found for the selected criteria.</p>
         {% endif %}
-            <!-- Button -->
-            <div class="button-container">
-                <a href="{% url 'polls:information' %}" class="button">Information</a>
-                <a href="{% url 'polls:home' %}" class="button">Back to Homepage</a>
-            </div>
         </div>
     </div>
+    <!-- Restore scroll position -->
+    <script>
+        window.addEventListener('beforeunload', () => {
+          sessionStorage.setItem('scrollPosition', window.scrollY);
+        });
+      </script>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const storedScroll = sessionStorage.getItem('scrollPosition');
+          if (storedScroll) {
+            window.scrollTo(0, parseInt(storedScroll, 10));
+          }
+          document.documentElement.classList.remove("hidden");
+        });
+    </script>
 </body>
 </html>

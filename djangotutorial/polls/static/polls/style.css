@@ -73,14 +73,12 @@ li {
     background-color: #f2f2f2;
 }
 
-/* 让表格在小屏幕下不会溢出 */
 .property-table-container {
     width: 100%;
-    overflow-x: auto; /* 如果屏幕过小，允许表格横向滚动 */
+    overflow-x: auto; 
     margin-top: 20px;
 }
 
-/* 链接样式 */
 .property-link {
     color: #007bff;
     text-decoration: none;
@@ -89,4 +87,97 @@ li {
 
 .property-link:hover {
     text-decoration: underline;
+}
+
+
+/* test*/
+.bookmark-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.remove-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.messages {
+    margin-bottom: 20px;
+}
+
+.message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.success {
+    background-color: #dff0d8;
+    color: #3c763d;
+}
+
+.info {
+    background-color: #d9edf7;
+    color: #31708f;
+}
+
+.tablelist {
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 20px;         
+    background-color: #fff;   
+}
+
+.tablelist th,
+.tablelist td {
+    border: 1px solid #ccc; 
+    padding: 8px 12px;       
+    text-align: left;        
+    vertical-align: middle;  
+}
+
+
+.tablelist thead th {
+    background-color: #f2f2f2;
+    font-weight: 600; 
+}
+
+.Chuck {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+    gap: 15px; 
+    margin-top: 20px;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-size: 0.9em; 
+}
+
+
+.card-title {
+    font-size: 1em;     
+    color: #444;        
+    margin-bottom: 8px; 
+    font-weight: 500;  
+}
+
+.card-value {
+    font-size: 16px;  
+    font-weight: bold;
+    color: #333;
 }
