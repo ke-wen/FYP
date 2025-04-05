@@ -51,11 +51,11 @@
             <div class="Chuck">
                 <div class="card">
                     <div class="card-title">Average Rent Price</div>
-                    <div class="card-value">{{ rent_avg_price }}</div>
+                    <div class="card-value">{{ rent_avg_price|floatformat:"-2"}} €</div>
                 </div>
                 <div class="card">
                     <div class="card-title">Average Sale Price</div>
-                    <div class="card-value">{{ sale_avg_price }}</div>
+                    <div class="card-value">{{ sale_avg_price|floatformat:"-2"}} €</div>
                 </div>
                 <div class="card">
                     <div class="card-title">Rental Yield</div>
@@ -83,7 +83,7 @@
                         <th>Title</th>
                         <th>Bedrooms</th>
                         <th>Bathrooms</th>
-                        <th>Price (€)</th>
+                        <th>Price(€)</th>
                         <th>Rental Yield</th>
                         <th>All Risk Yield (5-Year)</th>
                         <th>Link</th>
@@ -96,7 +96,7 @@
                         <td>{{ property.title }}</td>
                         <td>{{ property.bedrooms }}</td>
                         <td>{{ property.bathrooms }}</td>
-                        <td>{{ property.price }} €</td>
+                        <td>{{ property.price|floatformat:"-2" }}</td>
                         <td>{{ property.rental_yield }}</td>
                         <td>{{ property.all_risk_yield }}</td>
                         <td>

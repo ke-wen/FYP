@@ -51,8 +51,6 @@ class IndexView(View):
     template_name = "polls/index.html"
 
     def get(self, request):
-        # Existing filtering and query code...
-        # ---------------------------------------------------------
         selected_county = request.GET.get('county', '')
         selected_bedrooms = request.GET.get('bedrooms', '')
 
@@ -90,12 +88,12 @@ class IndexView(View):
 
         rent_avg_price = Propertyrent.objects.filter(query).aggregate(avg_price=Avg('price'))['avg_price']
         sale_avg_price = Propertysale.objects.filter(query).aggregate(avg_price=Avg('price'))['avg_price']
-        rent_avg_price = f"{rent_avg_price:.2f} €" if rent_avg_price is not None else "N/A"
-        sale_avg_price = f"{sale_avg_price:.2f} €" if sale_avg_price is not None else "N/A"
+        rent_avg_price = float(rent_avg_price) if rent_avg_price is not None else "N/A"
+        sale_avg_price = float(sale_avg_price) if sale_avg_price is not None else "N/A"
 
         if rent_avg_price != "N/A" and sale_avg_price != "N/A":
-            rent_avg_price_num = float(rent_avg_price[:-2])
-            sale_avg_price_num = float(sale_avg_price[:-2])
+            rent_avg_price_num = rent_avg_price
+            sale_avg_price_num = sale_avg_price
             rental_yield = f"{(rent_avg_price_num * 12 / sale_avg_price_num) * 100:.2f} %"
 
             # All Risk Yield example calculation
@@ -113,8 +111,8 @@ class IndexView(View):
             rental_yield = "N/A"
             all_risk_yield = "N/A"
 
-        # ---------------------------------------------------------
-        # 1. Identify which properties this user has already bookmarked
+
+        # Identify which properties this user has already bookmarked
         user_identifier = request.session.get('user_id')
         if user_identifier:
             # Return (property_id, bookmark_id) for each bookmarked property
@@ -123,36 +121,25 @@ class IndexView(View):
         else:
             bookmark_id_by_property_id = {}
 
-        # 2. Build up the property list, noting whether each property is bookmarked
+        # Build up the property list, noting whether each property is bookmarked
         filtered_sale_properties = Propertysale.objects.filter(query).values(
-            'id', 'title', 'bedrooms', 'bathrooms', 'price', 'link'
+            'id', 'title', 'bedrooms', 'bathrooms', 'price','rental_yield','all_risk_yield','link'
         )
 
         property_list = []
         for prop in filtered_sale_properties:
             property_price = prop['price']
-            prop_rental_yield = "N/A"
-            prop_all_risk_yield = "N/A"
+            db_rental_yield = prop['rental_yield']      
+            db_all_risk_yield = prop['all_risk_yield']  
+            if db_rental_yield is not None:
+                prop_rental_yield = f"{db_rental_yield:.2f} %"
+            else:
+                prop_rental_yield = "N/A"
 
-            # Convert price to float if not None
-            if property_price is not None:
-                property_price = float(property_price)
-
-                # If we have a valid rent_avg_price
-                if rent_avg_price != "N/A":
-                    rent_avg_price_num = float(rent_avg_price[:-2])
-                    prop_rental_yield = f"{(rent_avg_price_num * 12 / property_price) * 100:.2f} %"
-
-                    prop_all_risk_yield_value = calculate_all_risk_yield(
-                        property_price, 
-                        rent_avg_price_num,
-                        0.34,
-                        0.052,
-                        5,
-                        0.02,
-                        1
-                    )
-                    prop_all_risk_yield = f"{prop_all_risk_yield_value:.2f} %"
+            if db_all_risk_yield is not None:
+                prop_all_risk_yield = f"{db_all_risk_yield:.2f} %"
+            else:
+                prop_all_risk_yield = "N/A"
 
             property_list.append({
                 **prop,
@@ -224,7 +211,9 @@ class BoxPlotView(View):
 
                 # Rental Yield
                 ry = (avg_rent * 12 / sale_price) * 100
-                rental_yield_data[bedrooms].append(ry)
+                # Filter outliers
+                if ry < 50:
+                    rental_yield_data[bedrooms].append(ry)
 
                 # All Risk Yield
                 maintenance_percentage = 0.34
@@ -242,7 +231,9 @@ class BoxPlotView(View):
                     income_growth_rate,
                     rental_review_period
                 )
-                all_risk_yield_data[bedrooms].append(ary)
+                # Filter outliers
+                if ary < 40:
+                    all_risk_yield_data[bedrooms].append(ary)
 
         if not rental_yield_data:
             return render(request, self.template_name, {

@@ -62,6 +62,9 @@ class Propertysale(models.Model):
     area = models.CharField(max_length=100, blank=True, null=True)  
     link = models.URLField(max_length=500, blank=True, null=True)
     is_active = models.BooleanField(default=True, verbose_name="Is Active")
+    rental_yield = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    all_risk_yield = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    all_risk_yield_plus = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"{self.title} - {self.Property_Type}"

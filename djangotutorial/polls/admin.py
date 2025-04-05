@@ -48,7 +48,7 @@ class PropertysaleResource(resources.ModelResource):
         model = Propertysale
 class PropertysaleAdmin(ImportExportModelAdmin):
     resource_class = PropertysaleResource
-    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date', 'county','area','is_active')  
+    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date','ecode','county','area','is_active','rental_yield','all_risk_yield','all_risk_yield_plus','bedrooms')  
     search_fields = ('title', 'Property_Type', 'county','area')  
     list_filter = ('Property_Type', 'county','is_active')  
 
@@ -57,7 +57,7 @@ class PropertyrentResource(resources.ModelResource):
         model = Propertyrent
 class PropertyrentAdmin(ImportExportModelAdmin):
     resource_class = PropertyrentResource
-    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date', 'county','area','is_active')  
+    list_display = ('id', 'title', 'Property_Type', 'price', 'publish_date','ecode','county','area','is_active')  
     search_fields = ('title', 'Property_Type', 'county','area')  
     list_filter = ('Property_Type', 'county','is_active')  
     
