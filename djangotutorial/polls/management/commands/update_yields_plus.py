@@ -78,9 +78,10 @@ class Command(BaseCommand):
                 lambda x: x.fillna(x.mode()[0] if not x.mode().empty else "Unknown")
             )
         
-        # Fill price with mean from same county
-        if 'price' in df.columns and 'county' in df.columns:
-            df['price'] = df.groupby('county')['price'].transform(lambda x: x.fillna(x.mean()))
+        # Fill price with mean from same county and bedrooms
+        df['price'] = df.groupby(['county', 'bedrooms'])['price'].transform(lambda x: x.fillna(x.mean()))
+        df['price'] = df.groupby('county')['price'].transform(lambda x: x.fillna(x.mean()))
+        df['price'].fillna(df['price'].median(), inplace=True)
         
         # Fill missing title
         missing_title_mask = df['title'].isna()
@@ -351,7 +352,9 @@ class Command(BaseCommand):
             )
             
             # Save calculated result
-
+            if all_risk_yield_plus_val > 9999.99 or all_risk_yield_plus_val < -9999.99:
+                print(f"[WARN] Skipped outlier property {prop.id}: rent={rent_float}, price={price_float}, yield={all_risk_yield_plus_val:.2f}")
+                continue
             prop.all_risk_yield_plus = Decimal(f"{all_risk_yield_plus_val:.2f}")
             prop.save(update_fields=['all_risk_yield_plus'])
             updated_count += 1

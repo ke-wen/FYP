@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import IndexView, BoxPlotView 
+from .views import IndexView, BoxPlotView, DashboardView
 from . import views
 
 app_name = "polls"
@@ -11,4 +11,5 @@ urlpatterns = [
     path('bookmark/', views.bookmark_property, name='bookmark_property'),
     path('bookmarks/', views.view_bookmarks, name='view_bookmarks'),
     path('bookmarks/remove/<int:bookmark_id>/', views.remove_bookmark, name='remove_bookmark'),
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
 ]

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Property Data Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'polls/style.css' %}">
+</head>
+<body>
+    <div class="background">
+      <div class="content">
+        <h1>Property Data Dashboard</h1>
+
+        {% if error %}
+          <p>{{ error }}</p>
+        {% else %}
+          <img src="{% static chart_boxplot %}" alt="Price Boxplot">
+          <img src="{% static chart_heatmap %}" alt="Heatmap">
+          <img src="{% static chart_feature_importance %}" alt="Feature Importance">
+          <img src="{% static chart_scatter %}" alt="Scatter">
+          <img src="{% static chart_price_hist %}" alt="Histogram">
+          <img src="{% static chart_timeseries %}" alt="Trend">
+        {% endif %}
+
+        <div class="button-container">
+            <a href="{% url 'polls:home' %}" class="button">Back to Homepage</a>
+        </div>
+      </div>
+    </div>
+</body>
+</html>

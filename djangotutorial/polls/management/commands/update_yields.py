@@ -66,6 +66,9 @@ class Command(BaseCommand):
 
             rental_yield_val = (rent_float * 12 / price_float) * 100  # float
             all_risk_yield_val = self.calculate_all_risk_yield(price_float, rent_float)  # float
+            if rental_yield_val > 9999.99:
+                print(f"[WARN] Skipped outlier property {prop.id}: rent={rent_float}, price={price_float}, yield={rental_yield_val:.2f}")
+                continue
 
             # Save calculated yield
             prop.rental_yield = Decimal(f"{rental_yield_val:.2f}")

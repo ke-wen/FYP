@@ -22,6 +22,7 @@ import seaborn as sns
 import urllib, base64
 import pandas as pd
 import io
+import os
 
 
 
@@ -356,7 +357,30 @@ def remove_bookmark(request, bookmark_id):
         bookmark.delete()
     next_url = request.META.get('HTTP_REFERER', 'polls:property_calculator')
     return redirect(next_url)
-        
+
+
+
+
+
+class DashboardView(View):
+    template_name = "polls/dashboard.html"
+
+    def get(self, request):
+        charts = {
+            'chart_boxplot': 'dashboard_charts/chart_boxplot.png',
+            'chart_heatmap': 'dashboard_charts/chart_heatmap.png',
+            'chart_feature_importance': 'dashboard_charts/chart_feature_importance.png',
+            'chart_scatter': 'dashboard_charts/chart_scatter.png',
+            'chart_price_hist': 'dashboard_charts/chart_price_hist.png',
+            'chart_timeseries': 'dashboard_charts/chart_timeseries.png',
+        }
+        return render(request, self.template_name, charts)
+
+
+
+
+
+
 """
 Sql query for test:
 SELECT AVG(price) AS avg_rent_price

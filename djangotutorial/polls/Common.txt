@@ -6,4 +6,7 @@ http://127.0.0.1:8000/polls/
 python manage.py makemigrations
 python manage.py migrate
 python manage.py update_properties
+python manage.py update_yields
 python manage.py update_yields_plus
+python manage.py generate_dashboard_charts
+python manage.py update_all
