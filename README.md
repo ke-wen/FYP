@@ -1,6 +1,6 @@
 ## About This Project
 
-Produced by final-year **Business Analytics** student **Ke Wen** (**TU912/4**) at **Technological University Dublin**.  
+Produced by final-year **Business Analytics** (**TU912/4**) student **Ke Wen** at **Technological University Dublin**.  
 supervisor：**Neil O Connor**.  
 Data sourced from **[Daft.ie](https://www.daft.ie/)**.
 
