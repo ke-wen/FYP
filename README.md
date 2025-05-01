@@ -6,8 +6,8 @@ Data sourced from **[Daft.ie](https://www.daft.ie/)**.
 
 **Property Investment Assistant** aims to:
 
-- Promote a healthier real estate market
 - Help investors make better property investment decisions  
+- Promote a healthier real estate market
 - Reduce property vacancy rates  
 - Contribute to the United Nations Sustainable Development Goals:
   - **SDG 8**: *Decent Work and Economic Growth*
