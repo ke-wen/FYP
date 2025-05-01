@@ -2,7 +2,7 @@ import datetime
 from django.db import models
 from django.contrib import admin
 from django.utils import timezone
-
+from django.contrib.auth.models import User
 
 
 
@@ -89,12 +89,12 @@ class Propertyrent(models.Model):
 #TEST
 class Bookmark(models.Model):
     property = models.ForeignKey(Propertysale, on_delete=models.CASCADE)
-    user = models.CharField(max_length=255)  # For a simple solution without user authentication
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     bookmark_date = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, null=True)
-    
+
     class Meta:
         unique_together = ('property', 'user')
-    
+
     def __str__(self):
-        return f"{self.user} - {self.property.title}"
+        return f"{self.user.username} - {self.property.title}"

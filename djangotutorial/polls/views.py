@@ -114,24 +114,23 @@ class IndexView(View):
 
 
         # Identify which properties this user has already bookmarked
-        user_identifier = request.session.get('user_id')
-        if user_identifier:
-            # Return (property_id, bookmark_id) for each bookmarked property
-            user_bookmarks = Bookmark.objects.filter(user=user_identifier).values_list('property_id', 'id')
+        if request.user.is_authenticated:
+            user_bookmarks = Bookmark.objects.filter(user=request.user).values_list('property_id', 'id')
             bookmark_id_by_property_id = {prop_id: bm_id for prop_id, bm_id in user_bookmarks}
         else:
             bookmark_id_by_property_id = {}
 
         # Build up the property list, noting whether each property is bookmarked
         filtered_sale_properties = Propertysale.objects.filter(query).values(
-            'id', 'title', 'bedrooms', 'bathrooms', 'price','rental_yield','all_risk_yield','link'
+            'id', 'title', 'bedrooms', 'bathrooms', 'price','Property_Type','rental_yield','all_risk_yield','all_risk_yield_plus','link'
         )
 
         property_list = []
         for prop in filtered_sale_properties:
             property_price = prop['price']
             db_rental_yield = prop['rental_yield']      
-            db_all_risk_yield = prop['all_risk_yield']  
+            db_all_risk_yield = prop['all_risk_yield']
+            db_all_risk_yield_plus = prop['all_risk_yield_plus']
             if db_rental_yield is not None:
                 prop_rental_yield = f"{db_rental_yield:.2f} %"
             else:
@@ -141,11 +140,17 @@ class IndexView(View):
                 prop_all_risk_yield = f"{db_all_risk_yield:.2f} %"
             else:
                 prop_all_risk_yield = "N/A"
+                
+            if db_all_risk_yield_plus is not None:
+                prop_all_risk_yield_plus = f"{db_all_risk_yield_plus:.2f} %"
+            else:
+                prop_all_risk_yield_plus = "N/A"
 
             property_list.append({
                 **prop,
                 'rental_yield': prop_rental_yield,
                 'all_risk_yield': prop_all_risk_yield,
+                'all_risk_yield_plus': prop_all_risk_yield_plus,
                 # Check if current property is bookmarked
                 'bookmark_id': bookmark_id_by_property_id.get(prop['id'])
             })
@@ -186,55 +191,35 @@ class BoxPlotView(View):
             return render(request, self.template_name, {'error': "No county selected"})
 
         query = Q(is_active=True) & Q(county=selected_county) & Q(bedrooms__isnull=False)
-        sale_properties = Propertysale.objects.filter(query).values('bedrooms', 'price')
-        rent_properties = Propertyrent.objects.filter(query).values('bedrooms', 'price')
+        sale_properties = Propertysale.objects.filter(query).values('bedrooms', 'rental_yield', 'all_risk_yield', 'all_risk_yield_plus')
 
         rental_yield_data = defaultdict(list)
         all_risk_yield_data = defaultdict(list)
+        all_risk_yield_plus_data = defaultdict(list)
 
-        # Collect average rent by bedrooms
-        rent_prices_by_bedrooms = defaultdict(list)
-        for rent in rent_properties:
-            if rent['price'] is not None:
-                rent_prices_by_bedrooms[rent['bedrooms']].append(float(rent['price']))
-
-        avg_rent_by_bedrooms = {
-            k: sum(v) / len(v) for k, v in rent_prices_by_bedrooms.items() if v
-        }
-
-        # Calculate yields
         for sale in sale_properties:
             bedrooms = sale['bedrooms']
-            sale_price = float(sale['price']) if sale['price'] else None
 
-            if sale_price and bedrooms in avg_rent_by_bedrooms:
-                avg_rent = avg_rent_by_bedrooms[bedrooms]
-
-                # Rental Yield
-                ry = (avg_rent * 12 / sale_price) * 100
-                # Filter outliers
-                if ry < 50:
+            try:
+                ry = float(sale['rental_yield'])
+                if ry < 100:
                     rental_yield_data[bedrooms].append(ry)
+            except (KeyError, TypeError, ValueError):
+                pass
 
-                # All Risk Yield
-                maintenance_percentage = 0.34
-                sale_price_growth_rate = 0.052
-                holding_period = 5
-                income_growth_rate = 0.02
-                rental_review_period = 1
-
-                ary = calculate_all_risk_yield(
-                    sale_price,
-                    avg_rent,
-                    maintenance_percentage,
-                    sale_price_growth_rate,
-                    holding_period,
-                    income_growth_rate,
-                    rental_review_period
-                )
-                # Filter outliers
-                if ary < 40:
+            try:
+                ary = float(sale['all_risk_yield'])
+                if ary < 100:
                     all_risk_yield_data[bedrooms].append(ary)
+            except (KeyError, TypeError, ValueError):
+                pass
+
+            try:
+                aryp = float(sale['all_risk_yield_plus'])
+                if aryp < 100:
+                    all_risk_yield_plus_data[bedrooms].append(aryp)
+            except (KeyError, TypeError, ValueError):
+                pass
 
         if not rental_yield_data:
             return render(request, self.template_name, {
@@ -243,120 +228,62 @@ class BoxPlotView(View):
 
         sorted_bedrooms = sorted(rental_yield_data.keys())
 
-        # Rental Yield Box Plot
-        buffer_rental = io.BytesIO()
-        plt.figure(figsize=(8, 6))
-        rental_data = pd.DataFrame({
-            str(k): pd.Series(rental_yield_data[k]) for k in sorted_bedrooms
-        })
-        sns.boxplot(data=rental_data, order=[str(k) for k in sorted_bedrooms])
-        ax_rental = plt.gca()
-
-        ylim = ax_rental.get_ylim()
-        offset = 0.05 * (ylim[1] - ylim[0])  
-
-        for i, b in enumerate(sorted_bedrooms):
-            n = len(rental_yield_data[b])
-            ax_rental.text(
-                x=i,
-                y=ylim[1] - offset,
-                s=f"Number on sale: {n}",
-                ha='center',
-                va='top',
-                fontsize=9
-            )
-
-        plt.xlabel("Number of Bedrooms")
-        plt.ylabel("Rental Yield (%)")
-        plt.title(f"Rental Yield Box Plot for {selected_county}")
-        plt.savefig(buffer_rental, format="png", bbox_inches='tight')
-        buffer_rental.seek(0)
-        graphic_rental = base64.b64encode(buffer_rental.getvalue()).decode()
-        buffer_rental.close()
-        plt.close()
-
-        # All Risk Yield Box Plot
-        buffer_all_risk = io.BytesIO()
-        if all_risk_yield_data:
+        def generate_boxplot(data_dict, ylabel, title):
+            buffer = io.BytesIO()
             plt.figure(figsize=(8, 6))
-            all_risk_data = pd.DataFrame({
-                str(k): pd.Series(all_risk_yield_data[k]) for k in sorted_bedrooms
-            })
-            sns.boxplot(data=all_risk_data, order=[str(k) for k in sorted_bedrooms])
-            ax_ary = plt.gca()
-
-            ylim_ary = ax_ary.get_ylim()
-            offset_ary = 0.05 * (ylim_ary[1] - ylim_ary[0])
-
+            data = pd.DataFrame({str(k): pd.Series(data_dict[k]) for k in sorted_bedrooms})
+            sns.boxplot(data=data, order=[str(k) for k in sorted_bedrooms])
+            ax = plt.gca()
+            ylim = ax.get_ylim()
+            offset = 0.05 * (ylim[1] - ylim[0])
             for i, b in enumerate(sorted_bedrooms):
-                n_ary = len(all_risk_yield_data[b])
-                ax_ary.text(
-                    x=i,
-                    y=ylim_ary[1] - offset_ary,
-                    s=f"Number on sale: {n_ary}",
-                    ha='center',
-                    va='top',
-                    fontsize=9
-                )
-
+                n = len(data_dict[b])
+                ax.text(x=i, y=ylim[1] - offset, s=f"Number on sale: {n}", ha='center', va='top', fontsize=9)
             plt.xlabel("Number of Bedrooms")
-            plt.ylabel("All Risk Yield (%)")
-            plt.title(f"All Risk Yield Box Plot for {selected_county}")
-            plt.savefig(buffer_all_risk, format="png", bbox_inches='tight')
-            buffer_all_risk.seek(0)
-            graphic_all_risk = base64.b64encode(buffer_all_risk.getvalue()).decode()
-            buffer_all_risk.close()
+            plt.ylabel(ylabel)
+            plt.title(title)
+            plt.savefig(buffer, format="png", bbox_inches='tight')
+            buffer.seek(0)
+            encoded = base64.b64encode(buffer.getvalue()).decode()
+            buffer.close()
             plt.close()
-        else:
-            graphic_all_risk = None
+            return encoded
+
+        graphic_rental = generate_boxplot(rental_yield_data, "Rental Yield (%)", f"Rental Yield Box Plot for {selected_county}")
+        graphic_all_risk = generate_boxplot(all_risk_yield_data, "All Risk Yield (%)", f"All Risk Yield Box Plot for {selected_county}")
+        graphic_all_risk_plus = generate_boxplot(all_risk_yield_plus_data, "All Risk Yield Plus (%)", f"All Risk Yield Plus Box Plot for {selected_county}")
 
         return render(request, self.template_name, {
             'graphic_rental': graphic_rental,
             'graphic_all_risk': graphic_all_risk,
+            'graphic_all_risk_plus': graphic_all_risk_plus,
             'selected_county': selected_county
         })
+
 # django ploty
 
 
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
+@login_required
 def bookmark_property(request):
     if request.method == 'POST':
         property_id = request.POST.get('property_id')
-        user_identifier = request.session.get('user_id', None)
-        
-        # Create a user identifier if none exists
-        if not user_identifier:
-            import uuid
-            user_identifier = str(uuid.uuid4())
-            request.session['user_id'] = user_identifier
-        
-        # Check if already bookmarked
-        existing = Bookmark.objects.filter(property_id=property_id, user=user_identifier).exists()
-        
-        if not existing:
-            property_obj = get_object_or_404(Propertysale, id=property_id)
-            Bookmark.objects.create(property=property_obj, user=user_identifier)
-            
-        return redirect(request.META.get('HTTP_REFERER', 'polls:property_calculator'))
+        property_obj = get_object_or_404(Propertysale, id=property_id)
+        Bookmark.objects.get_or_create(property=property_obj, user=request.user)
+    return redirect(request.META.get('HTTP_REFERER', 'polls:property_calculator'))
 
+@login_required
 def view_bookmarks(request):
-    user_identifier = request.session.get('user_id', None)
-    
-    if not user_identifier:
-        bookmarks = []
-    else:
-        bookmarks = Bookmark.objects.filter(user=user_identifier).select_related('property')
-        
+    bookmarks = Bookmark.objects.filter(user=request.user).select_related('property')
     return render(request, 'polls/bookmarks.html', {'bookmarks': bookmarks})
 
+@login_required
 def remove_bookmark(request, bookmark_id):
-    user_identifier = request.session.get('user_id', None)
-    
-    if user_identifier:
-        bookmark = get_object_or_404(Bookmark, id=bookmark_id, user=user_identifier)
-        bookmark.delete()
-    next_url = request.META.get('HTTP_REFERER', 'polls:property_calculator')
-    return redirect(next_url)
+    bookmark = get_object_or_404(Bookmark, id=bookmark_id, user=request.user)
+    bookmark.delete()
+    return redirect(request.META.get('HTTP_REFERER', 'polls:property_calculator'))
 
 
 
@@ -369,16 +296,65 @@ class DashboardView(View):
         charts = {
             'chart_boxplot': 'dashboard_charts/chart_boxplot.png',
             'chart_heatmap': 'dashboard_charts/chart_heatmap.png',
-            'chart_feature_importance': 'dashboard_charts/chart_feature_importance.png',
             'chart_scatter': 'dashboard_charts/chart_scatter.png',
             'chart_price_hist': 'dashboard_charts/chart_price_hist.png',
             'chart_timeseries': 'dashboard_charts/chart_timeseries.png',
+            'chart_top10_cheap': 'dashboard_charts/chart_top10_cheap.png',
+            'chart_top10_expensive': 'dashboard_charts/chart_top10_expensive.png',
+            'chart_top10_high_rental': 'dashboard_charts/chart_top10_high_rental.png',
+            'chart_top10_low_rental': 'dashboard_charts/chart_top10_low_rental.png',
+            'chart_top10_property_sold': 'dashboard_charts/chart_top10_property_sold.png'
         }
         return render(request, self.template_name, charts)
 
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import login, logout, authenticate
+
+class CustomUserCreationForm(UserCreationForm):
+    first_name = forms.CharField(max_length=30, required=False, help_text='Optional.')
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'password1', 'password2')
+
+def register_view(request):
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.first_name = form.cleaned_data.get('first_name')
+            user.save()
+            login(request, user)
+            return redirect('polls:home')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'polls/register.html', {'form': form})
 
 
+# log in
+def login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('polls:home')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'polls/login.html', {'form': form})
 
+# log out
+def logout_view(request):
+    logout(request)
+    return redirect('polls:home')
+
+class MLDashboardView(View):
+    template_name = "polls/ml_dashboard.html"
+
+    def get(self, request):
+        return render(request, self.template_name)
 
 
 """

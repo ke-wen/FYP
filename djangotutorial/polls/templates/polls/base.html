@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}House Investment{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'polls/style.css' %}">
+</head>
+<body>
+    <button id="menu-toggle" class="menu-toggle">☰ Menu</button>
+    <nav id="sidebar" class="sidebar active">
+        <ul class="nav-list">
+            <li><a href="{% url 'polls:home' %}">Home</a></li>
+            <li><a href="{% url 'polls:property_calculator' %}">Property Search</a></li>
+            <li><a href="{% url 'polls:dashboard' %}">Market Analysis</a></li>
+            <li><a href="{% url 'polls:ml_dashboard' %}">Machine Learning Insights</a></li>
+            <li><a href="{% url 'polls:view_bookmarks' %}">My Bookmarks</a></li>
+            <li><a href="{% url 'polls:information' %}">Information</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'polls:logout' %}">Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'polls:login' %}">Login</a></li>
+                <li><a href="{% url 'polls:register' %}">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% block layout %}
+    <div class="background">
+        <div class="content {% block content_class %}{% endblock %}">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}                        
+            <div style="display: flex; justify-content: flex-end; gap: 10px; align-items: center; margin-bottom: 10px;">
+                {% if user.is_authenticated %}
+                    <span>👤 {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}</span>
+                    <span class="separator">|</span>
+                    <a href="{% url 'polls:logout' %}" class="button">Logout</a>
+                {% else %}
+                    <a href="{% url 'polls:login' %}" class="button">Login</a>
+                    <span class="separator">|</span>
+                    <a href="{% url 'polls:register' %}" class="button">Register</a>
+                {% endif %}
+            </div>
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    {% endblock %}
+    <script>
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        menuToggle.addEventListener('click', () => {
+          sidebar.classList.toggle('active');
+        });
+    </script>       
+</body>
+</html>

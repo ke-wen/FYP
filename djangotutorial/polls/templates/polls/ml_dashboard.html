@@ -1,0 +1,32 @@
+{% extends 'polls/base.html' %}
+{% load static %}
+
+{% block title %}Machine Learning Insights{% endblock %}
+
+{% block content %}
+<h1>Machine Learning Insights</h1>
+
+<h2>Sale Price Prediction Model</h2>
+<div class="chart-container">
+    <img src="{% static 'dashboard_charts/chart_sale_metrics.png' %}" alt="Sale Metrics">
+    <img src="{% static 'dashboard_charts/chart_sale_feature_importance.png' %}" alt="Sale Feature Importance">
+    <img src="{% static 'dashboard_charts/chart_sale_pca.png' %}" alt="Sale PCA Visualization">
+</div>
+
+<h2>Rent Price Prediction Model</h2>
+<div class="chart-container">
+    <img src="{% static 'dashboard_charts/chart_rent_metrics.png' %}" alt="Rent Metrics">
+    <img src="{% static 'dashboard_charts/chart_rent_feature_importance.png' %}" alt="Rent Feature Importance">
+    <img src="{% static 'dashboard_charts/chart_rent_pca.png' %}" alt="Rent PCA Visualization">
+</div>
+
+<h2>Model result example - yield calculation based on house price prediction and rental prediction</h2>
+<div class="chart-container">
+    <img src="{% static 'dashboard_charts/chart_top10_high_mlrental.png' %}" alt="Top 10 High All Risk Rental Yield (ML) Counties">
+    <img src="{% static 'dashboard_charts/chart_top10_low_mlrental.png' %}" alt="Top 10 Low All Risk Rental Yield (ML) Counties">
+</div>
+
+<div class="button-container">
+    <a href="{% url 'polls:dashboard' %}" class="button">Go to market analysis</a> 
+</div>
+{% endblock %}

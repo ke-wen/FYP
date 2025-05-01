@@ -2,6 +2,7 @@
     background: url('http://127.0.0.1:8000/static/polls/images/Maps.png') no-repeat center center fixed;
     background-size: cover;
     min-height: 100vh; 
+    width: 100vw;
     display: flex;
     flex-direction: column; 
     justify-content: center; 
@@ -18,6 +19,43 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
     text-align: center; 
     margin-top: -55px; 
+}
+
+.btn-login {
+    width: 150px;          
+    padding: 10px 0;       
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: block;        
+    margin: 20px auto 0;  
+}
+.btn-login:hover {
+    background-color: #45a049;
+}
+
+.btn-search {
+    background-color: #4DB6E2; 
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px; 
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 200px; 
+    display: block;
+    margin: 20px auto; 
+}
+
+.btn-search:hover {
+    background-color: #409ec3; 
+    transform: translateY(-2px); 
 }
 
 
@@ -38,6 +76,7 @@ select, button {
     flex-direction: column; 
     gap: 10px; 
     align-items: center;
+    margin-top: 20px;
 }
 
 ul {
@@ -50,9 +89,20 @@ li {
     font-size: 18px;
     
 }
+
+.content-wide {
+    max-width: 1200px;
+}
+
+.content-exwide {
+    max-width: 1400px;
+    text-align: left;
+}
+
+
 .property-table {
     width: 100%;
-    max-width: 800px; /* 限制最大宽度，使表格不超出内容区域 */
+    max-width: 800px;
     border-collapse: collapse;
     margin-top: 20px;
     background: white;
@@ -180,4 +230,172 @@ li {
     font-size: 16px;  
     font-weight: bold;
     color: #333;
+}
+
+a {
+    text-decoration: none; 
+    color: #007bff;         
+    font-weight: 500;       
+}
+
+a:hover {
+    text-decoration: underline; 
+    color: #0056b3;             
+}
+
+.separator {
+    margin: 0 10px;
+    color: #999; 
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.menu-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -270px;
+    width: 195px;
+    height: 100%;
+    background-color: #ffffff;
+    padding: 20px 10px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    overflow-y: auto;
+    transition: left 0.3s ease;
+    z-index: 1000;
+}
+
+.sidebar.active {
+    left: 0; 
+}
+
+.nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    padding-top: 60px;
+}
+
+.nav-list li {
+    margin-bottom: 20px;
+}
+
+.nav-list li a {
+    display: block;
+    color: #333;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.nav-list li a:hover {
+    background-color: #e0e0e0;
+}
+
+.homepage-layout {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.homepage-logo {
+    width: 160px;
+    height: auto;
+    margin-bottom: 40px;
+}
+
+.homepage-title {
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 20px;
+}
+
+.homepage-lead {
+    font-size: 2rem;
+    color: #1e293b;
+    font-weight: 600;
+    margin-bottom: 30px;
+    max-width: 1000px;
+}
+
+
+.homepage-subtitle {
+    font-size: 1.5rem;
+    color: #475569;
+    max-width: 1000px;
+    margin-bottom: 40px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 60px;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #1e40af;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #f1f5f9;
+    color: #334155;
+}
+.btn-secondary:hover {
+    background-color: #e2e8f0;
+    transform: translateY(-2px);
+}
+
+.example-wrapper {
+    position: relative;
+    width: fit-content;
+    margin: 60px auto 0 auto;
+    text-align: center;
+}
+
+.example-image {
+    width: 1000px;
+    height: auto;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.example-icon {
+    width: 200px;
+    height: autopx;
+    position: absolute;
+    top: -40px;
+    right: -20px;
+    object-fit: contain;
 }

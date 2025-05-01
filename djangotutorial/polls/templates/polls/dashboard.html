@@ -1,31 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Property Data Dashboard</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'polls/style.css' %}">
-</head>
-<body>
-    <div class="background">
-      <div class="content">
-        <h1>Property Data Dashboard</h1>
+{% extends 'polls/base.html' %}
+{% load static %}
 
-        {% if error %}
-          <p>{{ error }}</p>
-        {% else %}
-          <img src="{% static chart_boxplot %}" alt="Price Boxplot">
-          <img src="{% static chart_heatmap %}" alt="Heatmap">
-          <img src="{% static chart_feature_importance %}" alt="Feature Importance">
-          <img src="{% static chart_scatter %}" alt="Scatter">
-          <img src="{% static chart_price_hist %}" alt="Histogram">
-          <img src="{% static chart_timeseries %}" alt="Trend">
-        {% endif %}
+{% block title %}Property Market analysis{% endblock %}
 
-        <div class="button-container">
-            <a href="{% url 'polls:home' %}" class="button">Back to Homepage</a>
-        </div>
-      </div>
-    </div>
-</body>
-</html>
+{% block content %}
+<h1>Property Market analysis</h1>
+
+{% if error %}
+  <p>{{ error }}</p>
+{% else %}
+  <img src="{% static chart_timeseries %}" alt="Trend">
+  <img src="{% static chart_price_hist %}" alt="Histogram">
+  <img src="{% static chart_scatter %}" alt="Scatter">
+  <img src="{% static chart_boxplot %}" alt="Price Boxplot">
+  <img src="{% static chart_top10_expensive %}" alt="Top 10 Expensive Counties">
+  <img src="{% static chart_top10_cheap %}" alt="Top 10 Cheap Counties">
+  <img src="{% static chart_top10_high_rental %}" alt="Top 10 High Rental Yield Counties">
+  <img src="{% static chart_top10_low_rental %}" alt="Top 10 Low Rental Yield Counties">
+  <img src="{% static chart_top10_property_sold %}" alt="Top 10 Counties by Number of Properties Sold">
+  <img src="{% static chart_heatmap %}" alt="Heatmap">
+{% endif %}
+
+<div class="button-container">
+    <a href="{% url 'polls:ml_dashboard' %}" class="button">Go to Machine Learning Insights</a>
+</div>
+{% endblock %}

@@ -1,42 +1,37 @@
-<!DOCTYPE html> 
-<html lang="en">
-    
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Box Plot Analysis</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'polls/style.css' %}">
-</head>
+{% extends 'polls/base.html' %}
 
-<body>
-    <div class="background">
-        <div class="content">
-            <h1>Box Plot Analysis</h1>
-            <h2>{{ selected_county }}</h2>
+{% block title %}Box Plot Analysis{% endblock %}
 
-            {% if error %}
-                <p>{{ error }}</p>
-            {% else %}
-                <div class="boxplot">
-                    <h3>Rental Yield Box-Plot</h3>
-                    <img src="data:image/png;base64,{{ graphic_rental }}" alt="Rental Yield Box Plot">
-                </div>
-                <div class="boxplot">
-                    <h3>All Risk Yield Box-Plot</h3>
-                    {% if graphic_all_risk %}
-                        <img src="data:image/png;base64,{{ graphic_all_risk }}" alt="All Risk Yield Box Plot">
-                    {% else %}
-                        <p>No All Risk Yield data available.</p>
-                    {% endif %}
-                </div>
-            {% endif %}
+{% block content %}
+<h1>Box Plot Analysis</h1>
+<h2>{{ selected_county }}</h2>
 
-            <div class="button-container">
-                <a href="{% url 'polls:property_calculator' %}" class="button">Back to Calculator</a>
-                <a href="{% url 'polls:home' %}" class="select-button">Back to Homepage</a>
-            </div>
-        </div>
+{% if error %}
+    <p>{{ error }}</p>
+{% else %}
+    <div class="boxplot">
+        <h3>Rental Yield Box-Plot</h3>
+        <img src="data:image/png;base64,{{ graphic_rental }}" alt="Rental Yield Box Plot">
     </div>
-</body>
-</html>
+    <div class="boxplot">
+        <h3>All Risk Yield Box-Plot</h3>
+        {% if graphic_all_risk %}
+            <img src="data:image/png;base64,{{ graphic_all_risk }}" alt="All Risk Yield Box Plot">
+        {% else %}
+            <p>No All Risk Yield data available.</p>
+        {% endif %}
+    </div>
+    <div class="boxplot">
+        {% if graphic_all_risk_plus %}
+            <h3>All Risk Yield Plus Box Plot</h3>
+            <img src="data:image/png;base64,{{ graphic_all_risk_plus }}" alt="All Risk Yield Plus">
+        {% else %}
+            <p>No All Risk Yield Plus data available for this county.</p>
+        {% endif %}  
+    </div>  
+{% endif %}
+
+<div class="button-container">
+    <a href="{% url 'polls:property_calculator' %}" class="button">Back to Calculator</a>
+</div>
+{% endblock %}

@@ -1,144 +1,143 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Property Calculator</title>
-    <!-- Hide loading effects -->
-    <style>
-        html.hidden {
-          opacity: 0;           
-          transition: opacity 0s;
-        }
-    </style>
-    <script>
-        document.documentElement.classList.add("hidden");
-    </script>
+{% extends 'polls/base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Property Search{% endblock %}
+{% block content_class %}
+{% if all_properties %}
+content-wide
+{% endif %}
+{% endblock %}
+{% block content %}
+<!-- Hide loading effects -->
+<style>
+    html.hidden {
+      opacity: 0;           
+      transition: opacity 0s;
+    }
+</style>
+<script>
+    document.documentElement.classList.add("hidden");
+</script>
 
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'polls/style.css' %}">
-</head>
-<body>
-    <div class="background">
-        <div class="content">
-            <h1>Property Calculator</h1>
-            <!-- Filter Form -->
-            <form method="get">
-                <!-- County Selection -->
-                <label for="county">County:</label>
-                <select id="county" name="county">
-                    <option value="">Select County</option>
-                    {% for county in counties %}
-                    <option value="{{ county }}" {% if county == selected_county %}selected{% endif %}>{{ county }}</option>
-                    {% endfor %}
-                </select>
+<h1>Property Search</h1>
+<!-- Filter Form -->
+<form method="get">
+    <!-- County Selection -->
+    <label for="county">County:</label>
+    <select id="county" name="county">
+        <option value="">Select County</option>
+        {% for county in counties %}
+        <option value="{{ county }}" {% if county == selected_county %}selected{% endif %}>{{ county }}</option>
+        {% endfor %}
+    </select>
 
-                <!-- Bedrooms Selection -->
-                <label for="bedrooms">Bedrooms:</label>
-                <select id="bedrooms" name="bedrooms">
-                    <option value="">Select Bedrooms</option>
-                    {% for bedroom in bedroom_options %}
-                    <option value="{{ bedroom }}" {% if selected_bedrooms|default_if_none:'' == bedroom|stringformat:"s" %}selected{% endif %}>
-                        {{ bedroom }}
-                    </option>
-                    {% endfor %}
-                </select>
+    <!-- Bedrooms Selection -->
+    <label for="bedrooms">Bedrooms:</label>
+    <select id="bedrooms" name="bedrooms">
+        <option value="">Select Bedrooms</option>
+        {% for bedroom in bedroom_options %}
+        <option value="{{ bedroom }}" {% if selected_bedrooms|default_if_none:'' == bedroom|stringformat:"s" %}selected{% endif %}>
+            {{ bedroom }}
+        </option>
+        {% endfor %}
+    </select>
 
-                <button type="submit">Filter</button>
-            </form>
-    
-            <!-- Display Results -->
-            <div class="Chuck">
-                <div class="card">
-                    <div class="card-title">Average Rent Price</div>
-                    <div class="card-value">{{ rent_avg_price|floatformat:"-2"}} €</div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Average Sale Price</div>
-                    <div class="card-value">{{ sale_avg_price|floatformat:"-2"}} €</div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Rental Yield</div>
-                    <div class="card-value">{{ rental_yield }}</div>
-                </div>
-                <div class="card">
-                    <div class="card-title">All Risk Yield (5-Year)</div>
-                    <div class="card-value">{{ all_risk_yield }}</div>
-                </div>
-            </div>
-            <!-- Button -->
-            <div class="button-container">
-                {% if selected_county %}
-                <a href="{% url 'polls:boxplot' %}?county={{ selected_county }}" class="button">View Box-Plot</a>
-                {% endif %}
-                <a href="{% url 'polls:information' %}" class="button">Information</a>
-                <a href="{% url 'polls:home' %}" class="button">Back to Homepage</a>
-            </div>        
-            
-            {% if all_properties %}
-            <h2>Available Properties for Sale</h2>
-            <table class="tablelist">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Bedrooms</th>
-                        <th>Bathrooms</th>
-                        <th>Price(€)</th>
-                        <th>Rental Yield</th>
-                        <th>All Risk Yield (5-Year)</th>
-                        <th>Link</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for property in all_properties %}
-                    <tr>
-                        <td>{{ property.title }}</td>
-                        <td>{{ property.bedrooms }}</td>
-                        <td>{{ property.bathrooms }}</td>
-                        <td>{{ property.price|floatformat:"-2" }}</td>
-                        <td>{{ property.rental_yield }}</td>
-                        <td>{{ property.all_risk_yield }}</td>
-                        <td>
-                            <a href="{{ property.link }}" class="property-link" target="_blank">View</a>
-                        </td>
-                        <td>
-                            {% if property.bookmark_id %}
-                                <form method="post" action="{% url 'polls:remove_bookmark' property.bookmark_id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="remove-button">Remove</button>
-                                </form>
-                            {% else %}
-                                <form method="post" action="{% url 'polls:bookmark_property' %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="property_id" value="{{ property.id }}">
-                                    <button type="submit" class="bookmark-button">Bookmark</button>
-                                </form>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>            
-        {% else %}
-            <p>No properties found for the selected criteria.</p>
-        {% endif %}
-        </div>
+    <button type="submit" class="btn-search">Search</button>
+</form>
+
+<!-- Display Results -->
+<div class="Chuck">
+    <div class="card">
+        <div class="card-title">Average Rent Price</div>
+        <div class="card-value">{{ rent_avg_price|floatformat:0|intcomma }} €</div>
     </div>
-    <!-- Restore scroll position -->
-    <script>
-        window.addEventListener('beforeunload', () => {
-          sessionStorage.setItem('scrollPosition', window.scrollY);
-        });
-      </script>
-      <script>
-        document.addEventListener('DOMContentLoaded', () => {
-          const storedScroll = sessionStorage.getItem('scrollPosition');
-          if (storedScroll) {
-            window.scrollTo(0, parseInt(storedScroll, 10));
-          }
-          document.documentElement.classList.remove("hidden");
-        });
-    </script>
-</body>
-</html>
+    <div class="card">
+        <div class="card-title">Average Sale Price</div>
+        <div class="card-value">{{ sale_avg_price|floatformat:0|intcomma }} €</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Rental Yield</div>
+        <div class="card-value">{{ rental_yield }}</div>
+    </div>
+    <div class="card">
+        <div class="card-title">All Risk Yield (5-Year)</div>
+        <div class="card-value">{{ all_risk_yield }}</div>
+    </div>
+</div>
+<!-- Button -->
+<div class="button-container">
+    {% if selected_county %}
+    <a href="{% url 'polls:boxplot' %}?county={{ selected_county }}" class="button">View Box-Plot</a>
+    {% endif %}
+    <a href="{% url 'polls:information' %}" class="button">Information</a>
+</div>        
+
+{% if all_properties %}
+<h2>Available Properties for Sale</h2>
+<table class="tablelist">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Bedrooms</th>
+            <th>Bathrooms</th>
+            <th>Price(€)</th>
+            <th>Property Type</th>
+            <th>Rental Yield</th>
+            <th>All Risk Yield (5-Year)</th>
+            <th>All Risk Yield Plus (ML)</th>
+            <th>Link</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for property in all_properties %}
+        <tr>
+            <td>{{ property.title }}</td>
+            <td>{{ property.bedrooms }}</td>
+            <td>{{ property.bathrooms }}</td>
+            <td>{{ property.price|floatformat:0|intcomma }}</td>
+            <td>{{ property.Property_Type }}</td>
+            <td>{{ property.rental_yield }}</td>
+            <td>{{ property.all_risk_yield }}</td>
+            <td>{{ property.all_risk_yield_plus }}</td>
+            <td>
+                <a href="{{ property.link }}" class="property-link" target="_blank">View</a>
+            </td>
+            <td>
+                {% if property.bookmark_id %}
+                    <form method="post" action="{% url 'polls:remove_bookmark' property.bookmark_id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="remove-button">Remove</button>
+                    </form>
+                {% else %}
+                    <form method="post" action="{% url 'polls:bookmark_property' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="property_id" value="{{ property.id }}">
+                        <button type="submit" class="bookmark-button">Bookmark</button>
+                    </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>            
+{% else %}
+    <p>No properties found for the selected criteria.</p>
+{% endif %}
+
+<!-- Restore scroll position -->
+<script>
+    window.addEventListener('beforeunload', () => {
+      sessionStorage.setItem('scrollPosition', window.scrollY);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const storedScroll = sessionStorage.getItem('scrollPosition');
+      if (storedScroll) {
+        window.scrollTo(0, parseInt(storedScroll, 10));
+      }
+      document.documentElement.classList.remove("hidden");
+    });
+</script>
+{% endblock %}

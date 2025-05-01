@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     "debug_toolbar",
-    'django.contrib.staticfiles',  
+    'django.contrib.staticfiles', 
+    'django.contrib.humanize', 
     'import_export',
 ]
 
@@ -134,3 +135,5 @@ INTERNAL_IPS = [
     "127.0.0.1",
     # ...
 ]
+
+LOGIN_URL = '/property/login/'

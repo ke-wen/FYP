@@ -12,7 +12,7 @@ class Command(BaseCommand):
         call_command("update_yields")
 
         self.stdout.write("Running update_yields_plus...")
-        call_command("update_yields_plus")
+        call_command("update_yields_plus_new")
 
         self.stdout.write("Generating dashboard charts...")
         call_command("generate_dashboard_charts")
