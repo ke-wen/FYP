@@ -1,4 +1,3 @@
-演示可以用都柏林二，三房，四房
 python manage.py runserver
 python manage.py shell
 http://127.0.0.1:8000/admin/
